@@ -21,7 +21,7 @@
             /* リサイズ用のハンドル
              * リサイズができる場所はウィンドウ右下の16x16ピクセルの場所
              * この部分が完全に透明だとマウス入力が透過してしまってサイズを変更できなくなる */
-            background-image: url(images/handle.png);
+            /*background-image: url(images/handle.png);*/
             background-position: bottom right;
             background-repeat: no-repeat;
             box-sizing: border-box;
@@ -112,40 +112,23 @@
         [
             //{ text: "#", width: "5%", align: "center" },
             { text: "Name", width: "10%", align: "left" },
-            { text: "Job", width: "5%", align: "center" },
-            { text: "DPS", width: "5%", align: "center"},
-            //{ text: "DPS %", width: "5%", align: "center"},
-	    //{ text: "HPS", width: "5%", align: "center"},
-            //{ text: "HPS %", width: "5%", align: "center"},
-            //{ text: "Crt %", width: "5%", align: "center" },
-	    { text: "Miss", width: "5%", align: "center" },
-	    //{ text: "Deaths", width: "5%", align: "center" },
-	    //{ text: "Best Hit", width: "14%", align: "center" },
+            { text: "Job", width: "8%", align: "center" },
+            { text: "DPS", width: "5%", align: "center", span: 1 },
+            //{ text: "DPS %", width: "5%", align: "center", span: 1 },
+
+            { text: "Crt %", width: "5%", align: "center" },
         ];
 
         // 表示するデータの定義
-	var bodyDefine =
+        var bodyDefine =
         [
-            //{ text: rankingText, width: "", align: "center"},
-            { text: "{name}", width: "" },
-            { html: "<img src='./images/glow/{JobOrName}.png' onError=\"this.onerror=null;this.src='./icons/error.png';\" />", width: "5%", align: "center" },
-            { text: "{encdps}", width: "", align: "center" },
-            //{ text: "{damage%}", width: "", align: "center" },
-	    //{ text: "{enchps}", width: "", align: "center" },
-            //{ text: "{healed%}", width: "", align: "center" },
-            //{ text: "{crithit%}", width: "", align: "center" },
-	    { text: "{misses}", width: "", align: "center", effect: redTextEffect },
-	    //{ text: "{deaths}", width: "", align: "center", effect: redTextEffect },
-	    //{ text: "{maxhit}", width: "", align: "left"},
+            //{ text: rankingText, width: "5%", align: "center", effect: deadYatsuEffect },
+            { text: "{name}", width: "10%" },
+            { html: "<img src='./images/default/{JobOrName}.png' onError=\"this.onerror=null;this.src='./images/error.png';\" />", width: "5%", align: "center" },
+            { text: "{encdps}", width: "5%", align: "center" },
+            //{ text: "{damage%}", width: "5%", align: "center" },
+            { text: "{crithit%}", width: "5%", align: "center" },
         ];
-
-	function redTextEffect(cell) {
-		var num = parseInt(cell.innerText)
-		if (num > 0) {
-			cell.style.color = "#ffcdd2";
-			cell.style.textShadow = "-1px 0 3px #fc5161, 0 1px 3px #fc5161, 1px 0 3px #fc5161, 0 -1px 3px #fc5161";
-		}
-	}
 
         // 順位を表示する（text に関数を指定する例）
         // 引数:
@@ -183,6 +166,11 @@
         // onOverlayDataUpdate イベントを購読
         document.addEventListener("onOverlayDataUpdate", function (e) {
             update(e.detail);
+        });
+        window.addEventListener("message", function (e) {
+            if (e.data.type === "onOverlayDataUpdate") {
+                update(e.data.detail);
+            }
         });
 
         // 表示要素の更新

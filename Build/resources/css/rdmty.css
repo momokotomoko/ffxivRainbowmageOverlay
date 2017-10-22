@@ -227,6 +227,19 @@ li:last-child {
 .show-job-colors .mrd .bar, .show-job-colors .war .bar {
     background-color: #a91a16;
 }
+.show-job-colors .mrd .bar, .show-job-colors .war .bar {
+    background-color: #a91a16;
+}
+.show-job-colors .drk .bar {
+    background-color: #4a2829;
+}
+.show-job-colors .ast .bar {
+    background-color: #f6da6a;
+}
+.show-job-colors .mch .bar {
+    background-color: #6bcec2;
+}
+
 
 .job-icon {
     float: left;
@@ -279,4 +292,21 @@ li:last-child {
 .arrow.up:after {
     top: 8px;
     border-bottom-color: #fff;
+}
+
+.hidden {
+    display: none;
+}
+
+.dropdown-parent {
+    position: relative;
+}
+
+.dropdown-menu {
+    background-color: rgba(0, 0, 0, 0.7);
+    position: absolute;
+    top: 20px;
+    left: 0px;
+    padding: 2px 4px;
+    z-index: 100;
 }

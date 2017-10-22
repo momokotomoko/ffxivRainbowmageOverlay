@@ -2,6 +2,7 @@
 /* global window */
 
 var IMAGE_PATH = 'images';
+var EncountersArray = [];
 
 var React = window.React;
 
@@ -17,14 +18,13 @@ var formatNumber = (number) => {
 
     return number.toFixed(2);
 };
-
 class CombatantCompact extends React.Component {
     jobImage(job) {
         if (window.JSFIDDLE) {
             return window.GLOW_ICONS[job.toLowerCase()];
         }
 
-        return IMAGE_PATH + '/glow/' + job.toLowerCase() + '.png';
+        return IMAGE_PATH + '/default/' + job.toLowerCase() + '.png';
     }
 
     render() {
@@ -97,7 +97,8 @@ class Header extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            expanded: false
+            expanded: false,
+            showEncountersList: false
         };
     }
 
@@ -117,6 +118,15 @@ class Header extends React.Component {
         });
     }
 
+    /**
+     * Show dropdown for list of encounters
+     */
+    handleEncounterClick(e) {
+        this.setState({
+            showEncountersList: !this.state.showEncountersList
+        });
+    }
+
     render() {
         var encounter = this.props.encounter;
         var rdps = parseFloat(encounter.encdps);
@@ -130,8 +140,22 @@ class Header extends React.Component {
             <div className={`header ${this.state.expanded ? '' : 'collapsed'}`}>
                 <div className="encounter-header">
                     <div className="encounter-data ff-header">
-                        <span className="target-name">
+                        <span className="target-name dropdown-parent" onClick={this.handleEncounterClick.bind(this)}>
                             {encounter.title}
+                            <div className={`dropdown-menu encounters-list-dropdown ${this.state.showEncountersList ? '' : 'hidden'}`}>
+                                <div onClick={this.props.onSelectEncounter.bind(this, null)}>
+                                    Current Fight
+                                </div>
+
+                                {EncountersArray.map(function(encounter, i) {
+                                    return (
+                                        <div key={i} onClick={this.props.onSelectEncounter.bind(this, i)}>
+                                            {encounter.Encounter.title}
+                                        </div>
+                                    );
+
+                                }.bind(this))}
+                            </div>
                         </span>
                         <span className="duration">
                             ({encounter.duration})
@@ -213,6 +237,7 @@ class Header extends React.Component {
 Header.defaultProps = {
     encounter: {},
     onViewChange() {},
+    onSelectEncounter() {},
     onExtraDetailsClick() {}
 };
 
@@ -289,7 +314,7 @@ class Combatants extends React.Component {
                         characterName: combatant.name,
                         total: combatant.damage,
                         totalFormatted: formatNumber(combatant.damage),
-                        perSecond: formatNumber(combatant.dps),
+                        perSecond: formatNumber(combatant.encdps),
                         percentage: combatant['damage%']
                     }
                 }
@@ -334,7 +359,35 @@ class DamageMeter extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        if (nextProps.parseData.Encounter.encdps === '---') {
+            return false;
+        }
+
+        if (this.state.currentViewIndex !== nextState.currentViewIndex) {
+            return true;
+        }
+
+        if (this.state.selectedEncounter) {
+            return false;
+        }
+
         return true;
+    }
+
+    componentWillReceiveProps(nextProps) {
+        // save this encounter data
+        if (this.props.parseData.Encounter.title === 'Encounter' &&
+            nextProps.parseData.Encounter.title !== 'Encounter') {
+            EncountersArray.unshift({
+                Encounter: nextProps.parseData.Encounter,
+                Combatant: nextProps.parseData.Combatant
+            });
+
+            // Only keep the last 10 fights
+            if (EncountersArray.length > 10) {
+                EncountersArray.pop();
+            }
+        }
     }
 
     handleCombatRowClick(e) {
@@ -359,46 +412,68 @@ class DamageMeter extends React.Component {
 
     }
 
-    render() {
-        var data = this.props.parseData.Combatant;
-
-        // Healing
-        // need to resort data if currentView is not damage
-        if (this.state.currentViewIndex === 1) {
-            data = _.sortBy(_.filter(data, (d) => {
-                return parseInt(d.healed, 10) > 0;
-            }), (d) => {
-                if (this.state.currentViewIndex === 1) {
-                    return -parseInt(d.healed, 10);
-                }
+    handleSelectEncounter(index, e) {
+        if (index >= 0) {
+            this.setState({
+                selectedEncounter: EncountersArray[index]
             });
         }
-        // Tanking
-        else if (this.state.currentViewIndex === 2) {
-            data = _.sortBy(_.filter(data, (d) => {
-                return parseInt(d.damagetaken, 10) > 0;
-            }), (d) => {
-                if (this.state.currentViewIndex === 2) {
-                    return -parseInt(d.damagetaken, 10);
-                }
+        else {
+            this.setState({
+                selectedEncounter: null
             });
+        }
+        this.render();
+        console.log('handle select', index);
+    }
+
+    render() {
+        var data = this.props.parseData.Combatant;
+        var encounterData = this.props.parseData.Encounter;
+
+        if (this.state.selectedEncounter) {
+            data = this.state.selectedEncounter.Combatant;
+            encounterData = this.state.selectedEncounter.Encounter;
+        }
+        else {
+            // Healing
+            // need to resort data if currentView is not damage
+            if (this.state.currentViewIndex === 1) {
+                data = _.sortBy(_.filter(data, (d) => {
+                    return parseInt(d.healed, 10) > 0;
+                }), (d) => {
+                    if (this.state.currentViewIndex === 1) {
+                        return -parseInt(d.healed, 10);
+                    }
+                });
+            }
+            // Tanking
+            else if (this.state.currentViewIndex === 2) {
+                data = _.sortBy(_.filter(data, (d) => {
+                    return parseInt(d.damagetaken, 10) > 0;
+                }), (d) => {
+                    if (this.state.currentViewIndex === 2) {
+                        return -parseInt(d.damagetaken, 10);
+                    }
+                });
+            }
         }
 
         return (
-            this.props.parseData.Encounter.encdps === '---' ? <h3>Awaiting Data</h3> :
             <div
                 onClick={this.handleClick}
                 className={'damage-meter' + (!this.props.parseData.isActive ? ' inactive' : '') + (!this.props.noJobColors ? ' show-job-colors' : '')}>
                 <Header
-                    encounter={this.props.parseData.Encounter}
+                    encounter={encounterData}
                     onViewChange={this.handleViewChange.bind(this)}
+                    onSelectEncounter={this.handleSelectEncounter.bind(this)}
                     currentView={this.props.chartViews[this.state.currentViewIndex]}
                     />
                 <Combatants
                     currentView={this.props.chartViews[this.state.currentViewIndex]}
                     onClick={this.handleCombatRowClick}
                     data={data}
-                    encounterDamage={this.props.parseData.Encounter.damage} />
+                    encounterDamage={encounterData.damage} />
             </div>
         );
     }
