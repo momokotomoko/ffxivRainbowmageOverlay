@@ -246,6 +246,14 @@ function encounterAct(e, n)
 		{
 			
 		}
+
+		/*if (combatant[user].name != "YOU")
+		{
+			var matches = combatant[user].name.match(/\b(\w)/g);
+			var acronym = matches.join('. ');
+                	combatant[user].name=acronym;
+		}*/
+		combatant[user].name = combatant[user].name.split(" ")[0];
 	}
 
 	for(var n in combatant)

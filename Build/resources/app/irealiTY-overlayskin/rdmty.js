@@ -304,97 +304,8 @@ var ____Class3=React.Component;for(var ____Class3____Key in ____Class3){if(____C
         for (var i = 0; i < names.length; i++) {
             combatant = isDataArray ? this.props.data[i] : this.props.data[names[i]];
             stats = null;
-            
-			if (combatant.Job =="Acn")
-			{   
-				combatant.Job = 'ACN';
-			}
-			else if (combatant.Job =="Arc")
-			{   
-				combatant.Job = 'ARC';
-			}			
-			else if (combatant.Job =="Blm")
-			{   
-				combatant.Job = 'BLM';
-			}		
-			else if (combatant.Job =="Brd")
-			{   
-				combatant.Job = 'BRD';
-			}			
-			else if (combatant.Job =="Cnj")
-			{   
-				combatant.Job = 'CNJ';
-			}		
-			else if (combatant.Job =="Drg")
-			{   
-				combatant.Job = 'DRG';
-			}				
-			else if (combatant.Job =="Gld")
-			{   
-				combatant.Job = 'GLD';
-			}				
-			else if (combatant.Job =="Lnc")
-			{   
-				combatant.Job = 'LNC';
-			}				
-			else if (combatant.Job =="Mnk")
-			{   
-				combatant.Job = 'MNK';
-			}				
-			else if (combatant.Job =="Mrd")
-			{   
-				combatant.Job = 'MRD';
-			}
-			else if (combatant.Job =="Nin")
-			{   
-				combatant.Job = 'NIN';
-			}               
-			else if (combatant.Job =="Pgl")
-			{   
-				combatant.Job = 'PGL';
-			}				
-			else if (combatant.Job =="Pld")
-			{   
-				combatant.Job = 'PLD';
-			}
-			else if (combatant.Job =="Rog")
-			{   
-				combatant.Job = 'ROG';
-			}	            
-			else if (combatant.Job =="Smn")
-			{   
-				combatant.Job = 'SMN';
-			}			
-			else if (combatant.Job =="Thm")
-			{   
-				combatant.Job = 'THM';
-			}			
-			else if (combatant.Job =="War")
-			{   
-				combatant.Job = 'WAR';
-			}			
-			else if (combatant.Job =="Whm")
-			{   
-				combatant.Job = 'WHM';
-			}			
-			else if (combatant.Job =="Sch")
-			{   
-				combatant.Job = 'SCH';
-			}
-            else if (combatant.Job =="Drk")
-			{   
-				combatant.Job = 'DRK';
-			}
-            else if (combatant.Job =="Mch")
-			{   
-				combatant.Job = 'MCH';
-			}
-            else if (combatant.Job =="Ast")
-			{   
-				combatant.Job = 'AST';
-			}
-			else if (combatant.Job =="")
-			{
+            combatant.Job = combatant.Job.toUpperCase();
+			
                     if (combatant.name.indexOf("Garuda-Egi") === 0) {
                         combatant.Job = "Garuda";
                     }
@@ -428,10 +339,6 @@ var ____Class3=React.Component;for(var ____Class3____Key in ____Class3){if(____C
                     else if (combatant.name.match(/[^a-zA-Z()'\s]/)) {
                         combatant.Job = "Chocobo";
                     }
-                    else {
-                        combatant.Job = "";
-                    }
-			}
 
             isSelf = combatant.name === 'YOU' || combatant.name === 'You' || combatant.name === $("#mynameval").val();
             if(isSelf)

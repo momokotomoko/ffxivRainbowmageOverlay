@@ -1,0 +1,911 @@
+﻿<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+	<link rel="stylesheet" type="text/css" href="css/AubeArgent/default.css">
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+    <script>
+		// Modification du parseur Rainbowmage
+		// Credits to : Rainbowmage
+		//				Momokotomoko (for his modification of this skin)
+		//				Laiglinne (for his "Laiglinne-ff-crystalstyle_meter")
+        //
+        // プラグイン側から以下のような ActXiv オブジェクトとしてデータが提供される
+        //
+        // var ActXiv = {
+        //    "Encounter": {...},
+        //    "Combatant": {
+        //        "PlayerName1": {...},
+        //        "PlayerName2": {...},
+        //        ...
+        //    }
+        // };
+        //
+        // データの更新は 1 秒毎。
+        //
+        // プラグインから onOverlayDataUpdate イベントが発行されるので、それを受信することもできる
+        // イベントハンドラの第一引数の detail プロパティ内に上記のオブジェクトが入る
+        //
+
+        //
+        // 表示設定 (2)
+        //
+
+		// Remplacez la valeur suivante par le nom de votre personnage
+		var characterName = "Ryushanna Lionheart";
+		
+		// Permet de colorer votre pseudo avec une des couleur configurables plus bas
+		var colorUserFlag = 1;
+		
+		// Permet de colorer votre meilleure attaque en rouge, cependant cette fonction marche pas totalement donc laissez-la à 0
+		// En revanche, un peu plus bas vous pourrez configurer une couleur perso
+		var colorHigherMaxHit = 0;
+		
+		// Permet de ne pas inclure la Limit Break (ou Transcendance) dans le calcul de la meilleure attaque / meilleur heal de l'équipe, remplacez par 0 pour l'inclure
+		// /!\ - Je laisse ce paramètre à 1 parce que c'est obvious que la Limit Break soit la technique la plus puissante d'une équipe
+		// De plus la Limit Break n'est pas quelque chose qu'on a l'occasion de reproduire quand on le souhaite et donc pas utile pour améliorer son DPS/HPS
+		var noLBInPartyMaxHit = 1;
+		var noLBInPartyMaxHeal = 1;
+
+		// Permet de ne pas inclure vos meilleures techniques dans le calcul des meilleures techniques de votre équipe, remplacez par 0 pour l'inclure
+		// /!\ - Je laisse ce paramètre à 1 parce que, dans le cas où vous seriez le meilleur de la team, ça vous permettra de voir le nom du 2è meilleur
+		// de l'équipe ainsi que le montant des dégats/heals générés par sa meilleure technique. Si au contraire vous n'étes pas le meilleur alors ça vous permettra justement
+		// de comparer les dégats/soins de vos meilleures techniques avec celles des autres
+		var noMyMaxHitInPartyMaxHit = 1;
+		var noMyMaxHealInPartyMaxHeal = 1;
+
+		// On détermine les différentes variables qui contiendront les effets de couleur
+		// Il y a une variable de job, celle-ci peut être configurée avec la couleur de votre choix
+		// Je vous invite donc à modifier les valeurs des variables "JOBColor" et "JOBShadow"
+		//
+		// Voici une liste de couleurs pour les flemmards (color;shadow) :
+		// Rouge : ffcdd2;ff5161 / Vert : e2ffeb;009600 / Bleu foncé : e2ebff;217aff / Violet : ffc8ff;b359d9 / Rose : ffcddc;ff51b4 / Marron : ffb478;b35900
+		//
+		// Si les couleurs ci-dessus ne vous conviennent pas, lisez le guide encadré, sinon zappez la partie encadrée pour poursuivre la configuration de votre parseur.
+		//
+		//	*********************************************************************************************************************************************
+		//	* Les couleurs sont de forme "#123456" il s'agit du code hexadécimal d'une couleur composé de chiffres et de lettres.						*
+		//	* Il est assez aisé d'obtenir la valeur héxadécimale d'une couleur par le biais d'un converteur comme le logiciel "La Boite à couleurs".	*
+		//	* Je vous fournirai le logiciel en question avec le parseur, par la suite il ne vous suffira qu'à rechercher la couleur qui vous intéresse	*
+		//	* en utilisant les sliders "Rouge", "Vert" et "Bleu", une fois que vous avez trouvé la couleur qui vous plaît, vous n'avez plus qu'à		*
+		//	* récupérer son code héxadécimal, que vous trouverez sous le carré de couleur et précédé par un #, ne copiez pas le # mais simplement le	*
+		//	* code de la couleur que vous souhaitez voire affichée sur votre parseur.																	*
+		//	*********************************************************************************************************************************************
+		//
+		// On détermine les couleurs que la différents job utiliseront :
+		//
+		// Couleur custom
+		// Vous pouvez changer ces deux valeurs pour afficher la couleur de votre choix (de base c'est en violet)
+		var JOBColor = "ffc8ff";
+		var JOBShadow = "b359d9";
+		
+		// On applique la couleur perso
+		var BParseCC = "<font style='color:#"+JOBColor+";text-shadow:-1px 0 3px #"+JOBShadow+", 0 1px 3px #"+JOBShadow+", 1px 0 3px #"+JOBShadow+", 0 -1px 3px #"+JOBShadow+";font-weight:100;'>";
+		var AParseCC = "</font>";
+		
+		// On détermine la couleur de certains éléments de l'en-tête du parseur (bleu de base)
+		var ParseColor = "e2ebf5";
+		var ParseShadow = "217aa2";
+		var BParseC = "<font style='color:#"+ParseColor+";text-shadow:-1px 0 3px #"+ParseShadow+", 0 1px 3px #"+ParseShadow+", 1px 0 3px #"+ParseShadow+", 0 -1px 3px #"+ParseShadow+";font-weight:100;'>";
+		var AParseC = "</font>";
+		
+		// On détermine la couleur des coups manqués (rouge de base)
+		var ParseMissColor = "ffcdd2";
+		var ParseMissShadow = "ff5161";
+		var BMissC = "<font style='color:#"+ParseMissColor+";text-shadow:-1px 0 3px #"+ParseMissShadow+", 0 1px 3px #"+ParseMissShadow+", 1px 0 3px #"+ParseMissShadow+", 0 -1px 3px #"+ParseMissShadow+";font-weight:100;'>";
+		var AMissC = "</font>";
+		
+		// On détermine les informations à l'en-tête du parseur Général
+		var encounterDefine = "Lieu : "+BParseC+"{CurrentZoneName}"+AParseC+" ~ Cible : "+BParseC+"{title}"+AParseC+" ~ Durée : "+BParseC+"{duration}"+AParseC+"<br>Meilleur soin de l'équipe : "+BParseC+"{maxHealCustom}"+AParseC+"<br>DPS de l'équipe : "+BParseC+"{ENCDPS} ({DAMAGE-k}K)"+AParseC+" ~ Meilleure attaque : "+BParseC+"{maxHitCustom}"+AParseC;
+		
+		// On détermine les informations à l'en-tête du parseur des Tank
+		var encounterDefineT = "Lieu : "+BParseC+"{CurrentZoneName}"+AParseC+" ~ Cible : "+BParseC+"{title}"+AParseC+" ~ Durée : "+BParseC+"{duration}"+AParseC+"<br>Meilleur soin de l'équipe : "+BParseC+"{maxHealCustom}"+AParseC+"<br>DPS de l'équipe : "+BParseC+"{ENCDPS} ({DAMAGE-k}K)"+AParseC+" ~ Meilleure attaque : "+BParseC+"{maxHitCustom}"+AParseC;
+		
+		// On détermine les informations à l'en-tête du parseur des Healer
+		var encounterDefineH = "Lieu : "+BParseC+"{CurrentZoneName}"+AParseC+" ~ Cible : "+BParseC+"{title}"+AParseC+" ~ Durée : "+BParseC+"{duration}"+AParseC+"<br>Meilleur soin de l'équipe : "+BParseC+"{maxHealCustom}"+AParseC+"<br>Mon meilleur soin : "+BParseCC+"{myMaxHealCustom}"+AParseCC+"";
+		
+		// On détermine les informations à l'en-tête du parseur des DPS
+		var encounterDefineD = "Lieu : "+BParseC+"{CurrentZoneName}"+AParseC+" ~ Cible : "+BParseC+"{title}"+AParseC+" ~ Durée : "+BParseC+"{duration}"+AParseC+"<br>DPS de l'équipe : "+BParseC+"{ENCDPS} ({DAMAGE-k}K)"+AParseC+" ~ Meilleure attaque : "+BParseC+"{maxHitCustom}"+AParseC+"<br>Mes Dégats : "+BParseCC+"{myDamageCustom}"+AParseCC+" ~ Ma meilleure attaque : "+BParseCC+"{myMaxHitCustom}"+AParseCC+"";
+		
+		// On autorise l'usage du html dans l'en-tête du parseur
+		var useHTMLEncounterDefine = true;
+		
+		// ============================ P A R S E U R - A L L ======================================
+		// On détermine les informations à afficher dans le parseur Général
+		var headerDefine =
+		[
+			{ text: "Job", width: "3%", align: "center" },
+			{ text: "Name", width: "10%", align: "left" },
+			{ text: "Précision", width: "5%", align: "right" },
+			{ text: "Coups", width: "2%", align: "right" },
+			{ text: "IncHitRate", width: "3%", align: "right" },
+			{ text: "RIP", width: "2%", align: "center" },
+		];
+		// On appelle les informations à afficher dans le parseur Général
+		var bodyDefine =
+		[
+			{ html: "<img src='images/AubeArgent/glow/{JobOrName}.png' onError=\"this.onerror=null;this.src='images/AubeArgent/glow/error.png';\" />", width: "", align: "center" },
+			{ text: "{newName}", width: "", effect: userTextEffect },
+			{ html: "{tohit}% ("+BMissC+"{misses}"+AMissC+")", width: "", align: "right" },
+			{ text: "{hits}", width: "", align: "right" },
+			{ text: "{IncToHit}", width: "", align: "right" },
+			{ text: "{deaths}", width: "", align: "center", effect: redTextEffect },
+		];
+		// =========================== P A R S E U R - T A N K =====================================
+		// On détermine les informations à afficher dans le parseur des Tank
+		var headerDefineT =
+		[
+			{ text: "Job", width: "3%", align: "center" },
+			{ text: "Name", width: "13%", align: "left" },
+			{ text: "Dégats Encaissés", width: "8%", align: "right" },
+			{ text: "Soins reçus", width: "5%", align: "right" },
+			{ text: "Blocage %", width: "5%", align: "center" },
+			{ text: "Parade %", width: "4%", align: "center" },
+		];
+		// On appelle les informations à afficher dans le parseur des Tank
+		var bodyDefineT =
+		[
+			{ html: "<img src='images/AubeArgent/glow/{JobOrName}.png' onError=\"this.onerror=null;this.src='images/AubeArgent/glow/error.png';\" />", width: "", align: "center" },
+			{ text: "{newName}", width: "", effect: userTextEffect },
+			{ text: "{damagetaken}", width: "", align: "right" },
+			{ text: "{healstaken}", width: "", align: "right" },
+			{ text: "{BlockPct}", width: "", align: "center" },
+			{ text: "{ParryPct}", width: "", align: "center" },
+		];
+		// ========================== P A R S E U R - H E A L E R ==================================
+		// On détermine les informations à afficher dans le parseur des Healers
+		var headerDefineH =
+		[
+			{ text: "Job", width: "3%", align: "center" },
+			{ text: "Name", width: "13%", align: "left" },
+			{ text: "HPS", width: "6%", align: "right"},
+			{ text: "Soins +", width: "5%", align: "right"},
+			{ text: "Critiques", width: "5%", align: "center" },
+			{ text: "Heals", width: "3%", align: "center"},
+			{ text: "+Heal", width: "3%", align: "center"},
+		];
+		// On appelle les informations à afficher dans le parseur des Healers
+		var bodyDefineH =
+		[
+			{ html: "<img src='images/AubeArgent/glow/{JobOrName}.png' onError=\"this.onerror=null;this.src='images/AubeArgent/glow/error.png';\" />", width: "", align: "center" },
+			{ text: "{newName}", width: "", effect: userTextEffect },
+			{ text: "{enchps} ({healed%})", width: "", align: "right" },
+			{ text: "{healed}", width: "", align: "right" },
+			{ text: "{critheal%} ({critheals})", width: "", align: "right" },
+			{ text: "{heals}", width: "", align: "center" },
+			{ text: "{OverHealPct}", width: "", align: "right" },
+		];
+		// ============================= P A R S E U R - D P S =====================================
+		// On détermine les informations à afficher dans le parseur des DPS
+		var headerDefineD =
+		[
+			{ text: "Job", width: "3%", align: "center" },
+			{ text: "Name", width: "12%", align: "left" },
+			{ text: "DPS", width: "8%", align: "right"},
+			{ text: "Dégats", width: "4%", align: "right"},
+			{ text: "Coups Nets", width: "6%", align: "right" },
+			{ text: "Critiques", width: "6%", align: "right" },
+			{ text: "Kills", width: "3%", align: "right" },
+		];
+		// On appelle les informations à afficher dans le parseur des DPS
+		var bodyDefineD =
+		[
+			{ html: "<img src='images/AubeArgent/glow/{JobOrName}.png' onError=\"this.onerror=null;this.src='images/AubeArgent/glow/error.png';\" />", width: "", align: "center" },
+			{ text: "{newName}", width: "", effect: userTextEffect },
+			{ text: "{encdps} ({damage%})", width: "", align: "right" },
+			{ text: "{DAMAGE-k}K", width: "", align: "right" },
+			{ text: "{DirectHitPct} ({DirectHitCount})", width: "", align: "right" },
+			{ text: "{crithit%} ({crithits}/{CritDirectHitCount})", width: "", align: "right" },
+			{ text: "{kills}", width: "", align: "right" },
+		];
+		
+		var partyMaxHitBuffer = "";
+		var myMaxHitBuffer = "";
+		
+		// On personnalise la couleur du pseudo
+		function userTextEffect(cell){
+			if (cell.innerText.indexOf("_userFlag") == 0) {
+				if (colorUserFlag == 1) 
+				{
+					cell.style.color = "#"+JOBColor;
+					cell.style.textShadow = "-1px 0 3px #"+JOBShadow+", 0 1px 3px #"+JOBShadow+", 1px 0 3px #"+JOBShadow+", 0 -1px 3px #"+JOBShadow+"";
+				}cell.innerText = characterName;
+			}
+		}
+	
+		function redTextEffect(cell){
+			var num = parseInt(cell.innerText)
+			if (num > 0){
+				cell.style.color = "#ffcdd2";
+				cell.style.textShadow = "-1px 0 3px #fc5161, 0 1px 3px #fc5161, 1px 0 3px #fc5161, 0 -1px 3px #fc5161";}
+		}
+
+        // 順位を表示する（text に関数を指定する例）
+        // 引数:
+        //  combatant : キャラクターのデータ。combatant["..."]でデータを取得できる。
+        //  index : キャラクターの並び順。一番上は 0 で、その後は 1 ずつ増える。
+        // 戻り値:
+        //  表示するテキスト。
+        //  ACT のタグは展開されないので、展開したい場合は parseActFormat 関数を使用してください。
+        function rankingText(combatant, index){return (index + 1).toString();}
+
+        // 死亡奴を赤くする（effect の例）
+        // 引数:
+        //  cell : セルの DOM 要素
+        //  combatant : キャラクターのデータ。combatant["..."]でデータを取得できる。
+        //  index: キャラクターの並び順。一番上は 0 で、その後は 1 ずつ増える。
+        // 戻り値: なし
+        function deadYatsuEffect(cell, combatant, index)
+		{
+            // デス数を整数値に変換
+            var deaths = parseInt(combatant["deaths"]);
+            // デス数が 0 よりも大きいなら
+            if (deaths > 0){cell.style.color = "#FFA0A0";cell.style.textShadow = "-1px 0 3px #802020, 0 1px 3px #802020, 1px 0 3px #802020, 0 -1px 3px #802020";}
+        }
+
+        //
+        // 以下表示用スクリプト
+        //
+
+        // onOverlayDataUpdate イベントを購読
+		// On écoute les données provenant du parseur et si quelque chose arrive on enclanche une mise à jour générale du parseur
+        document.addEventListener("onOverlayDataUpdate", function (e){update(e.detail);});
+
+        // 表示要素の更新
+		// Appel des mises à jour du parseur, en-tête et tableau de données
+        function update(data)
+		{
+            updateEncounter(data);
+            if (document.getElementById("combatantTableHeader") == null){updateCombatantListHeader();}
+            updateCombatantList(data);
+        }
+
+        // On détermine la mise à jour de l'en-tête du parseur
+		// Dans notre cas y aura au moins 4 parseurs donc on va mettre 4 parseurs à jour en même temps
+        function updateEncounter(data)
+		{
+			// ============================ P A R S E U R - A L L ======================================
+			
+            // On récupère le bloc de texte "encounter" afin d'y appliquer l'en-tête du parseur
+            var encounterElem = document.getElementById('encounter');
+
+            // テキスト取得
+            var elementText;
+            if (typeof encounterDefine === 'function'){elementText = encounterDefine(data.Encounter);}
+			else if (typeof encounterDefine === 'string'){elementText = parseActFormatCustom(encounterDefine, data);}
+			else{console.log("updateEncounter: Could not update the encounter element due to invalid type.");return;}
+
+            // テキスト設定
+            if (!useHTMLEncounterDefine){encounterElem.innerText = parseActFormatCustom(encounterDefine, data);}
+			else {encounterElem.innerHTML = parseActFormatCustom(encounterDefine, data);}
+			
+			// =========================== P A R S E U R - T A N K =====================================
+			
+			// On récupère le bloc de texte "encounterT" afin d'y appliquer l'en-tête du parseur
+            var encounterElemT = document.getElementById('encounterT');
+
+            // テキスト取得
+            var elementTextT;
+            if (typeof encounterDefineT === 'function'){elementTextT = encounterDefineT(data.Encounter);}
+			else if (typeof encounterDefineT === 'string'){elementTextT = parseActFormatCustom(encounterDefineT, data);}
+			else{console.log("updateEncounter: Could not update the encounter element due to invalid type.");return;}
+
+            // テキスト設定
+            if (!useHTMLEncounterDefine){encounterElemT.innerText = parseActFormatCustom(encounterDefineT, data);}
+			else {encounterElemT.innerHTML = parseActFormatCustom(encounterDefineT, data);}
+			
+			// ========================== P A R S E U R - H E A L E R ==================================
+			
+			// On récupère le bloc de texte "encounterH" afin d'y appliquer l'en-tête du parseur
+            var encounterElemH = document.getElementById('encounterH');
+
+            // テキスト取得
+            var elementTextH;
+            if (typeof encounterDefineH === 'function'){elementTextH = encounterDefineH(data.Encounter);}
+			else if (typeof encounterDefineH === 'string'){elementTextH = parseActFormatCustom(encounterDefineH, data);}
+			else{console.log("updateEncounter: Could not update the encounter element due to invalid type.");return;}
+
+            // テキスト設定
+            if (!useHTMLEncounterDefine){encounterElemH.innerText = parseActFormatCustom(encounterDefineH, data);}
+			else {encounterElemH.innerHTML = parseActFormatCustom(encounterDefineH, data);}
+			
+			// ============================= P A R S E U R - D P S ======================================
+			
+			// On récupère le bloc de texte "encounterD" afin d'y appliquer l'en-tête du parseur
+            var encounterElemD = document.getElementById('encounterD');
+
+            // テキスト取得
+            var elementTextD;
+            if (typeof encounterDefineD === 'function'){elementTextD = encounterDefineD(data.Encounter);}
+			else if (typeof encounterDefineD === 'string'){elementTextD = parseActFormatCustom(encounterDefineD, data);}
+			else{console.log("updateEncounter: Could not update the encounter element due to invalid type.");return;}
+
+            // テキスト設定
+            if (!useHTMLEncounterDefine){encounterElemD.innerText = parseActFormatCustom(encounterDefineD, data);}
+			else {encounterElemD.innerHTML = parseActFormatCustom(encounterDefineD, data);}
+        }
+
+        // ヘッダを更新する
+        function updateCombatantListHeader()
+		{
+            var table = document.getElementById('combatantTable');
+			var tableT = document.getElementById('combatantTableT');
+			var tableH = document.getElementById('combatantTableH');
+			var tableD = document.getElementById('combatantTableD');
+            var tableHeader = document.createElement("thead");
+			var tableHeaderT = document.createElement("thead");
+			var tableHeaderH = document.createElement("thead");
+			var tableHeaderD = document.createElement("thead");
+            tableHeader.id = "combatantTableHeader";
+			tableHeaderT.id = "combatantTableHeader";
+			tableHeaderH.id = "combatantTableHeader";
+			tableHeaderD.id = "combatantTableHeader";
+            var headerRow = tableHeader.insertRow();
+			var headerRowT = tableHeaderT.insertRow();
+			var headerRowH = tableHeaderH.insertRow();
+			var headerRowD = tableHeaderD.insertRow();
+			
+			// ============================ P A R S E U R - A L L ======================================
+			// On traite les informations qui s'afficheront dans la déclaration du tableau
+			// Dans cette boucle on traite des données du parseur Général
+            for (var i = 0; i < headerDefine.length; i++) 
+			{
+                var cell = document.createElement("th");
+                // テキスト設定
+                if (typeof headerDefine[i].text !== 'undefined'){cell.innerText = headerDefine[i].text;}
+				else if (typeof headerDefine[i].html !== 'undefined'){cell.innerHTML = headerDefine[i].html;}
+                // 幅設定
+                cell.style.width = headerDefine[i].width;
+                cell.style.maxWidth = headerDefine[i].width;
+                // 横結合数設定
+                if (typeof headerDefine[i].span !== 'undefined'){cell.colSpan = headerDefine[i].span;}
+                // 行揃え設定
+                if (typeof headerDefine[i].align !== 'undefined'){cell.style["textAlign"] = headerDefine[i].align;}
+                headerRow.appendChild(cell);
+            }
+			// =========================== P A R S E U R - T A N K =====================================
+			// On traite les informations qui s'afficheront dans la déclaration du tableau
+			// Dans cette boucle on traite des données du parseur des Tank
+            for (var i = 0; i < headerDefineT.length; i++) 
+			{
+                var cell = document.createElement("th");
+                // テキスト設定
+                if (typeof headerDefineT[i].text !== 'undefined'){cell.innerText = headerDefineT[i].text;}
+				else if (typeof headerDefineT[i].html !== 'undefined'){cell.innerHTML = headerDefineT[i].html;}
+                // 幅設定
+                cell.style.width = headerDefineT[i].width;
+                cell.style.maxWidth = headerDefineT[i].width;
+                // 横結合数設定
+                if (typeof headerDefineT[i].span !== 'undefined'){cell.colSpan = headerDefineT[i].span;}
+                // 行揃え設定
+                if (typeof headerDefineT[i].align !== 'undefined'){cell.style["textAlign"] = headerDefineT[i].align;}
+                headerRowT.appendChild(cell);
+            }
+			// ========================== P A R S E U R - H E A L E R ==================================
+			// On traite les informations qui s'afficheront dans la déclaration du tableau
+			// Dans cette boucle on traite des données du parseur des Healers
+            for (var k = 0; k < headerDefineH.length; k++) 
+			{
+                var cell = document.createElement("th");
+                // テキスト設定
+                if (typeof headerDefineH[k].text !== 'undefined'){cell.innerText = headerDefineH[k].text;}
+				else if (typeof headerDefineH[k].html !== 'undefined'){cell.innerHTML = headerDefineH[k].html;}
+                // 幅設定
+                cell.style.width = headerDefineH[k].width;
+                cell.style.maxWidth = headerDefineH[k].width;
+                // 横結合数設定
+                if (typeof headerDefineH[k].span !== 'undefined'){cell.colSpan = headerDefineH[k].span;}
+                // 行揃え設定
+                if (typeof headerDefineH[k].align !== 'undefined'){cell.style["textAlign"] = headerDefineH[k].align;}
+                headerRowH.appendChild(cell);
+            }
+			// ============================= P A R S E U R - D P S =====================================
+			// On traite les informations qui s'afficheront dans la déclaration du tableau
+			// Dans cette boucle on traite des données du parseur des DPS
+            for (var l = 0; l < headerDefineD.length; l++) 
+			{
+                var cell = document.createElement("th");
+                // テキスト設定
+                if (typeof headerDefineD[l].text !== 'undefined'){cell.innerText = headerDefineD[l].text;}
+				else if (typeof headerDefineD[l].html !== 'undefined'){cell.innerHTML = headerDefineD[l].html;}
+                // 幅設定
+                cell.style.width = headerDefineD[l].width;
+                cell.style.maxWidth = headerDefineD[l].width;
+                // 横結合数設定
+                if (typeof headerDefineD[l].span !== 'undefined'){cell.colSpan = headerDefineD[l].span;}
+                // 行揃え設定
+                if (typeof headerDefineD[l].align !== 'undefined'){cell.style["textAlign"] = headerDefineD[l].align;}
+                headerRowD.appendChild(cell);
+            }
+			table.tHead = tableHeader;
+			tableT.tHead = tableHeaderT;
+			tableH.tHead = tableHeaderH;
+			tableD.tHead = tableHeaderD;
+        }
+
+        // プレイヤーリストを更新する
+		// On formate le nom des Familiers/Chocobo compagnon afin que leur nom apparaisse dans le parseur
+		// On prépare également l'actualisation des autres parseurs
+		function updateCombatantList(data) 
+		{
+            // 要素取得＆作成
+            var table = document.getElementById('combatantTable');
+			var tableT = document.getElementById('combatantTableT');
+			var tableH = document.getElementById('combatantTableH');
+			var tableD = document.getElementById('combatantTableD');
+            var oldTableBody = table.tBodies.namedItem('combatantTableBody');
+			var oldTableBodyT = tableT.tBodies.namedItem('combatantTableBody');
+			var oldTableBodyH = tableH.tBodies.namedItem('combatantTableBody');
+			var oldTableBodyD = tableD.tBodies.namedItem('combatantTableBody');
+            var newTableBody = document.createElement("tbody");
+			var newTableBodyT = document.createElement("tbody");
+			var newTableBodyH = document.createElement("tbody");
+			var newTableBodyD = document.createElement("tbody");
+            newTableBody.id = "combatantTableBody";
+			newTableBodyT.id = "combatantTableBody";
+			newTableBodyH.id = "combatantTableBody";
+			newTableBodyD.id = "combatantTableBody";
+
+            // tbody の内容を作成
+            var combatantIndex = 0;
+			var combatantIndexT = 0;
+			var combatantIndexH = 0;
+			var combatantIndexD = 0;
+            var sortable = [];
+		for (var combatantName in data.Combatant) {
+                        var combatant = data.Combatant[combatantName];
+    			sortable.push([combatantName, combatant]);
+		}
+		sortable.sort(function(a, b) {
+    			return a[1]["enchps"] - b[1]["enchps"];
+		});
+		
+            for (var combatantName in data.Combatant) 
+			{
+                var combatant = data.Combatant[combatantName];
+                combatant.JobOrName = combatant.Job || combatantName;
+
+                var egiSearch = combatant.JobOrName.indexOf("-Egi (");
+				var turretSearch = combatant.JobOrName.indexOf(" Autoturret (");
+				var carbuncleSearch = combatant.JobOrName.indexOf(" Carbuncle (");
+                
+				if (egiSearch != -1){combatant.JobOrName = combatant.JobOrName.substring(0, egiSearch);}
+				else if (turretSearch != -1){combatant.JobOrName = combatant.JobOrName.substring(0, turretSearch);}
+				else if (carbuncleSearch != -1){combatant.JobOrName = "carbuncle";}
+                else if (combatant.JobOrName.indexOf("Eos (") == 0){combatant.JobOrName = "Eos";}
+                else if (combatant.JobOrName.indexOf("Selene (") == 0){combatant.JobOrName = "Selene";}
+                else if (combatant.JobOrName.indexOf(" (") != -1){combatant.JobOrName = "choco";}
+				combatant.newName = combatantName;
+
+				if (combatant.newName.indexOf("YOU") == 0){combatant.newName = "_userFlag";}
+		
+                var tableRow = newTableBody.insertRow(newTableBody.rows.length);
+				var tableRowT = newTableBodyT.insertRow(newTableBodyT.rows.length);
+				var tableRowH = newTableBodyH.insertRow(newTableBodyH.rows.length);
+				var tableRowD = newTableBodyD.insertRow(newTableBodyD.rows.length);
+				// ============================ P A R S E U R - A L L ======================================
+				// On traite les informations qui s'afficheront dans la partie des données du tableau
+				// Dans cette boucle on traite des données du parseur Général
+                for (var i = 0; i < bodyDefine.length; i++) 
+				{
+                    var cell = tableRow.insertCell(i);
+                    // テキスト設定
+                    if (typeof bodyDefine[i].text !== 'undefined')
+					{
+                        var cellText;
+                        if(typeof bodyDefine[i].text === 'function'){cellText = bodyDefine[i].text(combatant, combatantIndex);} 
+						else{cellText = parseActFormat(bodyDefine[i].text, combatant);}
+						cell.innerText = cellText;}
+					else if (typeof bodyDefine[i].html !== 'undefined')
+					{
+                        var cellHTML;
+                        if(typeof bodyDefine[i].html === 'function'){cellHTML = bodyDefine[i].html(combatant, combatantIndex);}
+						else{cellHTML = parseActFormat(bodyDefine[i].html, combatant);}
+                        cell.innerHTML = cellHTML;}
+                    // 幅設定
+                    cell.style.width = bodyDefine[i].width;
+                    cell.style.maxWidth = bodyDefine[i].width;
+                    // 行構え設定
+                    if (typeof (bodyDefine[i].align) !== 'undefined'){cell.style.textAlign = bodyDefine[i].align;}
+                    // エフェクト実行
+                    if (typeof bodyDefine[i].effect === 'function'){bodyDefine[i].effect(cell, combatant, combatantIndex);}
+                }
+				// =========================== P A R S E U R - T A N K =====================================
+				// On traite les informations qui s'afficheront dans la partie des données du tableau
+				// Dans cette boucle on traite des données du parseur des Tank
+                for (var l = 0; l < bodyDefineT.length; l++) 
+				{
+                    var cell = tableRowT.insertCell(l);
+                    // テキスト設定
+                    if (typeof bodyDefineT[l].text !== 'undefined')
+					{
+                        var cellText;
+                        if(typeof bodyDefineT[l].text === 'function'){cellText = bodyDefineT[l].text(combatant, combatantIndexT);} 
+						else{cellText = parseActFormat(bodyDefineT[l].text, combatant);}
+						cell.innerText = cellText;}
+					else if (typeof bodyDefineT[l].html !== 'undefined')
+					{
+                        var cellHTML;
+                        if(typeof bodyDefineT[l].html === 'function'){cellHTML = bodyDefineT[l].html(combatant, combatantIndexT);}
+						else{cellHTML = parseActFormat(bodyDefineT[l].html, combatant);}
+                        cell.innerHTML = cellHTML;}
+                    // 幅設定
+                    cell.style.width = bodyDefineT[l].width;
+                    cell.style.maxWidth = bodyDefineT[l].width;
+                    // 行構え設定
+                    if (typeof (bodyDefineT[l].align) !== 'undefined'){cell.style.textAlign = bodyDefineT[l].align;}
+                    // エフェクト実行
+                    if (typeof bodyDefineT[l].effect === 'function'){bodyDefineT[l].effect(cell, combatant, combatantIndexT);}
+                }
+				// ========================== P A R S E U R - H E A L E R ==================================
+				// On traite les informations qui s'afficheront dans la partie des données du tableau
+				// Dans cette boucle on traite des données du parseur des Healers
+                for (var j = 0; j < bodyDefineH.length; j++) 
+				{
+                    var cell = tableRowH.insertCell(j);
+                    // テキスト設定
+                    if (typeof bodyDefineH[j].text !== 'undefined')
+					{
+                        var cellText;
+                        if(typeof bodyDefineH[j].text === 'function'){cellText = bodyDefineH[j].text(combatant, combatantIndexH);} 
+						else{cellText = parseActFormat(bodyDefineH[j].text, combatant);}
+						cell.innerText = cellText;}
+					else if (typeof bodyDefineH[j].html !== 'undefined')
+					{
+                        var cellHTML;
+                        if(typeof bodyDefineH[j].html === 'function'){cellHTML = bodyDefineH[j].html(combatant, combatantIndexH);}
+						else{cellHTML = parseActFormat(bodyDefineH[j].html, combatant);}
+                        cell.innerHTML = cellHTML;}
+                    // 幅設定
+                    cell.style.width = bodyDefineH[j].width;
+                    cell.style.maxWidth = bodyDefineH[j].width;
+                    // 行構え設定
+                    if (typeof (bodyDefineH[j].align) !== 'undefined'){cell.style.textAlign = bodyDefineH[j].align;}
+                    // エフェクト実行
+                    if (typeof bodyDefineH[j].effect === 'function'){bodyDefineH[j].effect(cell, combatant, combatantIndexH);}
+                }
+				// ============================= P A R S E U R - D P S =====================================
+				// On traite les informations qui s'afficheront dans la partie des données du tableau
+				// Dans cette boucle on traite des données du parseur des DPS
+                for (var k = 0; k < bodyDefineD.length; k++) 
+				{
+                    var cell = tableRowD.insertCell(k);
+                    // テキスト設定
+                    if (typeof bodyDefineD[k].text !== 'undefined')
+					{
+                        var cellText;
+                        if(typeof bodyDefineD[k].text === 'function'){cellText = bodyDefineD[k].text(combatant, combatantIndexD);} 
+						else{cellText = parseActFormat(bodyDefineD[k].text, combatant);}
+						cell.innerText = cellText;}
+					else if (typeof bodyDefineD[k].html !== 'undefined')
+					{
+                        var cellHTML;
+                        if(typeof bodyDefineD[k].html === 'function'){cellHTML = bodyDefineD[k].html(combatant, combatantIndexD);}
+						else{cellHTML = parseActFormat(bodyDefineD[k].html, combatant);}
+                        cell.innerHTML = cellHTML;}
+                    // 幅設定
+                    cell.style.width = bodyDefineD[k].width;
+                    cell.style.maxWidth = bodyDefineD[k].width;
+                    // 行構え設定
+                    if (typeof (bodyDefineD[k].align) !== 'undefined'){cell.style.textAlign = bodyDefineD[k].align;}
+                    // エフェクト実行
+                    if (typeof bodyDefineD[k].effect === 'function'){bodyDefineD[k].effect(cell, combatant, combatantIndexD);}
+                }
+				combatantIndex++;
+				combatantIndexT++;
+				combatantIndexH++;
+				combatantIndexD++;
+			}
+				
+            // tbody が既に存在していたら置換、そうでないならテーブルに追加
+            if (oldTableBody != void (0)){table.replaceChild(newTableBody, oldTableBody);}
+            else{table.appendChild(newTableBody);}
+			if (oldTableBodyT != void (0)){tableT.replaceChild(newTableBodyT, oldTableBodyT);}
+            else{tableT.appendChild(newTableBodyT);}
+			if (oldTableBodyH != void (0)){tableH.replaceChild(newTableBodyH, oldTableBodyH);}
+            else{tableH.appendChild(newTableBodyH);}
+			if (oldTableBodyD != void (0)){tableD.replaceChild(newTableBodyD, oldTableBodyD);}
+            else{tableD.appendChild(newTableBodyD);}
+        }
+
+        // Miniparse フォーマット文字列を解析し、表示文字列を取得する
+        function parseActFormat(str, dictionary)
+		{
+            var result = "";
+            var currentIndex = 0;
+            do{
+                var openBraceIndex = str.indexOf('{', currentIndex);
+                if (openBraceIndex < 0){result += str.slice(currentIndex);break;}
+                else{
+					result += str.slice(currentIndex, openBraceIndex);
+                    var closeBraceIndex = str.indexOf('}', openBraceIndex);
+                    if (closeBraceIndex < 0){
+                        // parse error!
+                        console.log("parseActFormat: Parse error: missing close-brace for " + openBraceIndex.toString() + ".");
+                        return "ERROR";
+                    }
+                    else{
+                        var tag = str.slice(openBraceIndex + 1, closeBraceIndex);
+                        if (typeof dictionary[tag] !== 'undefined'){result += dictionary[tag];} 
+						else{console.log("parseActFormat: Unknown tag: " + tag);result += "ERROR";}
+                        currentIndex = closeBraceIndex + 1;
+                    }
+                }
+            }while (currentIndex < str.length);
+		return result;}
+		
+        // Momoko's custom maxhit
+		// Fonction que j'ai édité initialement pour obtenir une valeur maxheal custom, au final c'est la fonction
+		// qui me permet d'ajouter d'avantages d'infos comme le montant total de nos dégats mais aussi d'en faire 
+		// une conversion (et non uniquement ceux de l'équipe)
+		function parseActFormatCustom(str, data)
+		{
+			var result = "";
+			var currentIndex = 0;
+			var userMaxHitFlag;
+			var userMaxHealFlag;
+			var userDamageFlag;
+			var userMaxHitValue = 0;
+			var userMaxHealValue = 0;
+			var userMaxHitString = "";
+			var userMaxHealString = "";
+			var userDamageString = "";
+			if (str.indexOf("{myMaxHitCustom}") > 0 || str.indexOf("{myMaxHealCustom}") > 0 || str.indexOf("{myDamageCustom}") > 0)
+			{
+				userMaxHitFlag = 1;
+				userMaxHealFlag = 1;
+				userDamageFlag = 1;
+				var userMaxHit = "";
+				var userMaxHeal = "";
+				var userDamage = "";
+				var combatant = data.Combatant["YOU"];
+				if (typeof combatant !== 'undefined')
+				{
+					userMaxHitString = combatant["maxhit"];
+					userMaxHealString = combatant["maxheal"];
+					userDamageString = combatant["damage"];
+					if (userDamageString < 1000){userDamageString = combatant["damage"];}
+					else if (userDamageString > 1000){userDamageString = combatant["DAMAGE-k"]+"K";}
+					//else if (userDamageString > 1000000){userDamageString = combatant["DAMAGE-m"]+"M";}
+					//else if (userDamageString > 1000000000){userDamageString = combatant["DAMAGE-b"]+"B";}
+					var hitValueString = userMaxHitString.slice(userMaxHitString.lastIndexOf("-")+1);
+					var healValueString = userMaxHealString.slice(userMaxHealString.lastIndexOf("-")+1);
+					var hitValue = parseInt(hitValueString.replace(/,/g, ""));
+					var healValue = parseInt(healValueString.replace(/,/g, ""));
+					if (!isNaN(hitValue)){userMaxHitValue = hitValue;}
+					if (!isNaN(healValue)){userMaxHealValue = healValue;}
+				}
+			}
+			else{userMaxHitFlag = 0;userMaxHealFlag = 0;userDamageFlag = 0;}
+			var partyMaxHitFlag;
+			var partyMaxHealFlag;
+			var partyMaxHitValue = 0;
+			var partyMaxHealValue = 0;
+			var partyMaxHitString = "";
+			var partyMaxHealString = "";
+			if (str.indexOf("{maxHitCustom}") > 0 || str.indexOf("{maxHealCustom}") > 0)
+			{
+				partyMaxHitFlag = 1;
+				partyMaxHealFlag = 1;
+				for (var combatantName in data.Combatant)
+				{
+					if (noLBInPartyMaxHit == 1 && combatantName == "Limit Break"){continue;}
+					if (noLBInPartyMaxHeal == 1 && combatantName == "Limit Break"){continue;}
+					if (noMyMaxHitInPartyMaxHit == 1 && combatantName == "YOU"){continue;}
+					if (noMyMaxHealInPartyMaxHeal == 1 && combatantName == "YOU"){continue;}
+					var combatant = data.Combatant[combatantName];
+				
+					if (typeof combatant === 'undefined'){continue;}
+					var maxHitForCombatant = combatant["maxhit"];
+					var maxHealForCombatant = combatant["maxheal"];
+					if (maxHitForCombatant !== 'undefined' || maxHealForCombatant !== 'undefined'){
+						var hitValueString = maxHitForCombatant.slice(maxHitForCombatant.lastIndexOf("-")+1);
+						var healValueString = maxHealForCombatant.slice(maxHealForCombatant.lastIndexOf("-")+1);
+						var hitValue = parseInt(hitValueString.replace(/,/g, ""));
+						var healValue = parseInt(healValueString.replace(/,/g, ""));
+						if (!isNaN(hitValue)) 
+						{
+							if (hitValue > partyMaxHitValue) 
+							{
+								partyMaxHitValue = hitValue;
+								if (combatantName == "YOU"){partyMaxHitString = characterName+" -> "+maxHitForCombatant;}
+								else{partyMaxHitString = combatantName+" -> "+maxHitForCombatant;}
+							}
+						}
+						if (!isNaN(healValue)) 
+						{
+							if (healValue > partyMaxHealValue) 
+							{
+								partyMaxHealValue = healValue;
+								if (combatantName == "YOU"){partyMaxHealString = characterName+" -> "+maxHealForCombatant;}
+								else{partyMaxHealString = combatantName+" -> "+maxHealForCombatant;}
+							}
+						}
+					}
+				}
+			}else {partyMaxHitFlag = 0;partyMaxHealFlag = 0;}
+			
+			if (colorHigherMaxHit == 1 && partyMaxHitFlag == 1 && userMaxHitFlag == 1)
+			{
+				if (userMaxHitValue >= partyMaxHitValue)
+				{userMaxHitString = "<font style='color:#ffcdd2;text-shadow:-1px 0 3px #fc5161, 0 1px 3px #fc5161, 1px 0 3px #fc5161, 0 -1px 3px #fc5161;font-weight:100;'>" + userMaxHitString + "</font>";}
+				else{partyMaxHitString = "<font style='color:#ffcdd2;text-shadow:-1px 0 3px #fc5161, 0 1px 3px #fc5161, 1px 0 3px #fc5161, 0 -1px 3px #fc5161;font-weight:100;'>" + partyMaxHitString + "</font>";}}
+			do{
+				var openBraceIndex = str.indexOf('{', currentIndex);
+				if (openBraceIndex < 0){result += str.slice(currentIndex);break;}
+				else{
+					result += str.slice(currentIndex, openBraceIndex);
+					var closeBraceIndex = str.indexOf('}', openBraceIndex);
+					if (closeBraceIndex < 0)
+					{
+						// Erreur de Parse !
+						console.log("parseActFormat: Parse error: missing close-brace for " + openBraceIndex.toString() + ".");
+						return "ERROR";
+					}else{
+						var tag = str.slice(openBraceIndex + 1, closeBraceIndex);
+						if (tag == "maxHitCustom"){result += partyMaxHitString;}
+						else if (tag == "myMaxHitCustom"){result += userMaxHitString;}
+						else if (tag == "maxHealCustom"){result += partyMaxHealString;}
+						else if (tag == "myMaxHealCustom"){result += userMaxHealString;}
+						else if (tag == "myDamageCustom"){result += userDamageString;}
+						else if (typeof data.Encounter[tag] !== 'undefined'){result += data.Encounter[tag];} 
+						else
+						{
+							console.log("parseActFormat: Unknown tag: " + tag);
+							result += "ERROR";
+						}currentIndex = closeBraceIndex + 1;
+					}
+				}
+			}while (currentIndex < str.length);
+		return result;}
+    </script>
+</head>
+    <body>
+        <div id="wrapper">
+			<div id="container" style="padding:10px;">
+				<div id="encounter">
+					<script>document.write("En attente de données de combat...<br>")</script>
+					<script>document.write("<hr>◇ DPS Meter ~ "+BParseC+"Aube d'Argent"+AParseC+" ~ v31.10.2017<br>")</script>
+					<script>document.write("Skin modifié par "+BParseCC+"Ryushanna - [FR] Ryushanna Lionheart"+AParseCC)</script>
+					<!-- ここにエンカウント情報が入る -->
+				</div>
+				<table id="combatantTable">
+					<!-- ここにヘッダが入る -->
+					<!-- ここに各キャラの情報が入る -->
+				</table>
+			</div>
+			<div id="containerTank" style="display:none; padding:10px;">
+				<div id="encounterT">
+					<script>document.write("En attente de données de combat...<br>")</script>
+					<script>document.write("<hr>◇ DPS Meter ~ "+BParseC+"Aube d'Argent"+AParseC+" ~ v31.10.2017<br>")</script>
+					<script>document.write("Skin modifié par "+BParseCC+"Ryushanna - [FR] Ryushanna Lionheart"+AParseCC)</script>
+					<!-- ここにエンカウント情報が入る -->
+				</div>
+				<table id="combatantTableT">
+					<!-- ここにヘッダが入る -->
+					<!-- ここに各キャラの情報が入る -->
+				</table>
+			</div>
+			<div id="containerHealer" style="display:none; padding:10px;">
+				<div id="encounterH">
+					<script>document.write("En attente de données de combat...<br>")</script>
+					<script>document.write("<hr>◇ DPS Meter ~ "+BParseC+"Aube d'Argent"+AParseC+" ~ v31.10.2017<br>")</script>
+					<script>document.write("Skin modifié par "+BParseCC+"Ryushanna - [FR] Ryushanna Lionheart"+AParseCC)</script>
+					<!-- ここにエンカウント情報が入る -->
+				</div>
+				<table id="combatantTableH">
+					<!-- ここにヘッダが入る -->
+					<!-- ここに各キャラの情報が入る -->
+				</table>
+			</div>
+			<div id="containerDPS" style="display:none; padding:10px;">
+				<div id="encounterD">
+					<script>document.write("En attente de données de combat...<br>")</script>
+					<script>document.write("<hr>◇ DPS Meter ~ "+BParseC+"Aube d'Argent"+AParseC+" ~ v31.10.2017<br>")</script>
+					<script>document.write("Skin modifié par "+BParseCC+"Ryushanna - [FR] Ryushanna Lionheart"+AParseCC)</script>
+					<!-- ここにエンカウント情報が入る -->
+				</div>
+				<table id="combatantTableD">
+					<!-- ここにヘッダが入る -->
+					<!-- ここに各キャラの情報が入る -->
+				</table>
+			</div>
+			<div id="setainer" style="display:none; padding:10px;">
+				<div>
+					<script>document.write("◇ DPS Meter ~ "+BParseC+"Aube d'Argent"+AParseC+" ~ v31.10.2017"+BParseC+"<hr>Options :"+AParseC+" D'autres options viendront probablement par la suite.<hr>")</script>
+					Redimensionner : <input type="checkbox" checked="checked" onclick="resizeview();"/><br>
+					Décochez la case afin de faire disparaître la bulle permettant de redimensionner le parseur.<hr>
+					<script>document.write("N'oubliez pas que <i>"+BParseC+"l'usage d'un parseur est interdit mais toléré"+AParseC+"</i> par <i>"+BParseCC+"Square Enix"+AParseCC+"</i> uniquement si vous<br>")</script>
+					vous en servez pour vous améliorer. Vous ne devez en aucun cas critiquer la performance des<br>
+					autres joueurs au risque d'être banni, merci d'utiliser le parseur et bon jeu ;)
+					<script>document.write("<hr>Skin modifié par "+BParseCC+"Ryushanna - [FR] Ryushanna Lionheart"+AParseCC)</script>
+				</div>
+			</div>
+			<div id="bottomset">
+				<div class="chatloglikehandle settingcon" id="viewresize" style="border-bottom-right-radius:0px; float:right;">
+				</div>
+				<div class="chatloglikehandle">
+					<div id="tab0" class="pcl handlecont selbg" onclick="goTab(1, $(this));tabset(1)"><div class="handlecont_in">Général</div></div>
+					<div id="tab1" class="pcl handlecont2" onclick="goTab(2, $(this));tabset(2);"><div class="handlecont_in handlecont_in2">Tank</div></div>
+					<div id="tab2" class="pcl handlecont2" onclick="goTab(3, $(this));tabset(3);"><div class="handlecont_in handlecont_in2">Healer</div></div>
+					<div id="tab3" class="pcl handlecont2" onclick="goTab(4, $(this));tabset(4);"><div class="handlecont_in handlecont_in2">DPS</div></div>
+					<div id="tab4" class="pcl chatloglikehandle settingcon" onclick="goTab(5, $(this));tabset(5);">
+						<div class="settingcon_in"><div style="background:url(images/AubeArgent/icon.png) no-repeat; background-position:12px 2,8px; width:28px; height:20px;" /></div>
+					</div>
+				</div>
+			</div>
+			<script>
+				var viewback = true;
+				var currenttab = 0; // max 3
+				
+				function resizeview()
+				{
+					if(!viewback)
+						$("#viewresize").show();
+					else
+						$("#viewresize").hide();
+						
+					viewback=!viewback;
+				}
+				
+				function tabset(t)
+				{
+					if(t===1)
+					{
+						$("#container").show();
+						$("#containerTank").hide();
+						$("#containerHealer").hide();
+						$("#containerDPS").hide();
+						$("#setainer").hide();
+					}
+					else if(t===2)
+					{
+						$("#container").hide();
+						$("#containerTank").show();
+						$("#containerHealer").hide();
+						$("#containerDPS").hide();
+						$("#setainer").hide();
+					}
+					else if(t===3)
+					{
+						$("#container").hide();
+						$("#containerTank").hide();
+						$("#containerHealer").show();
+						$("#containerDPS").hide();
+						$("#setainer").hide();
+					}
+					else if(t===4)
+					{
+						$("#container").hide();
+						$("#containerTank").hide();
+						$("#containerHealer").hide();
+						$("#containerDPS").show();
+						$("#setainer").hide();
+					}
+					else if(t===5)
+					{
+						$("#container").hide();
+						$("#containerTank").hide();
+						$("#containerHealer").hide();
+						$("#containerDPS").hide();
+						$("#setainer").show();
+					}
+				}
+				
+				function goTab(e, obj)
+				{
+					$(".chatloglikehandle .pcl").removeClass("selbg");
+					obj.addClass("selbg");
+					
+					for(i=currenttab; i<5; i++)
+						$("#container").find(".chart-view-switcher").trigger("click");
+						
+					for(i=0; i<e-1; i++)
+						$("#container").find(".chart-view-switcher").trigger("click");
+						
+					currenttab = e-1;
+				}
+			</script>
+        </div>
+    </body>
+</html>

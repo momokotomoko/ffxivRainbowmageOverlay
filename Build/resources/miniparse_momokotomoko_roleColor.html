@@ -1,0 +1,573 @@
+﻿<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <style>
+        /*
+            表示設定 (1)
+        */
+
+        * {
+            /* フォント （一部のフォントは上手く適用されない） */
+            font-family: "Meiryo";
+            font-size: 11px;
+        }
+
+        body, html {
+            margin: 0;
+        }
+
+        html {
+            /* リサイズ用のハンドル
+             * リサイズができる場所はウィンドウ右下の16x16ピクセルの場所
+             * この部分が完全に透明だとマウス入力が透過してしまってサイズを変更できなくなる */
+            background-image: url(images/handle.png);
+            background-position: bottom right;
+            background-repeat: no-repeat;
+            box-sizing: border-box;
+            height: 100%;
+            /* 外枠 */
+            /*border: 1px solid rgba(0,0,0,0.1);*/
+            /* はみ出た内容はスクロールバーを表示させずに隠す
+             * 今のところ、ブラウザへの入力はできないので表示させても無意味 */
+            overflow: hidden;
+            /* 背景色 */
+            background-color: transparent;
+        }
+
+        #wrapper {
+            background: rgba(0, 0, 0, 0.35);
+            box-shadow: 0 0 8px 8px rgba(0, 0, 0, 0.35);
+            border-radius: 4px;
+            margin: 12px;
+        }
+
+        #combatantTable {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+
+        /* キャラクターデータのテキストの設定 */
+        #combatantTableBody * {
+            color: #E2EBF5;
+            text-shadow: -1px 0 3px #217AA2, 0 1px 3px #217AA2, 1px 0 3px #217AA2, 0 -1px 3px #217AA2;
+            font-weight: 300;
+            /* はみ出たテキストを「…」で省略する */
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        #combatantTableBody img {
+            height: 18px;
+            /* エンカウント情報とテーブルヘッダ内のテキストの設定 */
+        }
+        
+        #encounter, #combatantTableHeader *
+        {
+            color: #DED7BE;
+            text-shadow: -1px 0 2px #795516, 0 1px 2px #795516, 1px 0 2px #795516, 0 -1px 2px #795516;
+            font-weight: 300;
+            white-space: nowrap;
+        }
+
+        /* テーブルヘッダの下線の設定 */
+        #combatantTableHeader tr {
+            border-bottom: 1px solid #DED7BE;
+        }
+    </style>
+    <script>
+
+        //
+        // プラグイン側から以下のような ActXiv オブジェクトとしてデータが提供される
+        //
+        // var ActXiv = {
+        //    "Encounter": {...},
+        //    "Combatant": {
+        //        "PlayerName1": {...},
+        //        "PlayerName2": {...},
+        //        ...
+        //    }
+        // };
+        //
+        // データの更新は 1 秒毎。
+        //
+        // プラグインから onOverlayDataUpdate イベントが発行されるので、それを受信することもできる
+        // イベントハンドラの第一引数の detail プロパティ内に上記のオブジェクトが入る
+        //
+
+        //
+        // 表示設定 (2)
+        //
+
+	// Replace the YOU with your character's name, ie: var characterName = "Momoko Tomoko";
+	var characterName = "YOU";
+
+	// set to 1 to make your name colored differently
+	var colorUserFlag = 1;
+
+	// set to 1 if you don't want to include LBs as a party max hit
+	var noLBInPartyMaxHit = 1;
+
+	// set to 1 if you don't want your own max hit in the party max hit.
+	// ie: the party max hit will show the max of your party members minus you
+	var noMyMaxHitInPartyMaxHit = 1;
+
+	// set to 1 to highlight the higher max hit between user and party
+	// only does something if both {maxHitCustom} and {myMaxHitCustom} are in encounterDefine
+	var colorHigherMaxHit = 1;
+
+        // エンカウント情報の定義
+        var encounterDefine = "Time: {duration} / Party DPS: {ENCDPS} <br>Party Max Hit: {maxHitCustom}<br>My Max Hit: {myMaxHitCustom}";
+
+        // 上記のエンカウント情報を HTML として扱うなら true
+        var useHTMLEncounterDefine = true;
+
+	// list of jobs, dps is anything that is not listed here
+	var jobHealers = ["eos", "selene", "sch", "ast", "cnj", "whm"];
+	var jobTanks = ["titan", "pld", "gla", "gld", "war", "mrd", "drk", "gnb"];
+	var jobOthers = ["alc", "arm", "bsm", "btn", "crp", "cul", "fsh", "gsm", "ltw", "min", "wvr", "choco", "chocobo", "blu"];
+
+        // ヘッダの定義
+        var headerDefine =
+        [
+            //{ text: "#", width: "5%", align: "center" },
+            { text: "Name", width: "10%", align: "left" },
+            { text: "Job", width: "5%", align: "center" },
+            { text: "DPS", width: "5%", align: "center"},
+            //{ text: "DPS %", width: "5%", align: "center"},
+	    //{ text: "HPS", width: "5%", align: "center"},
+            { text: "Heal %", width: "5%", align: "center"},
+            { text: "Crt %", width: "5%", align: "center" },
+            { text: "DH %", width: "5%", align: "center" },
+	    //{ text: "Misses", width: "5%", align: "center" },
+	    { text: "Deaths", width: "5%", align: "center" },
+	    { text: "OverHeal", width: "5%", align: "center"},
+	    //{ text: "Max Hit", width: "14%", align: "center" },
+        ];
+
+        // 表示するデータの定義
+	var bodyDefine =
+        [
+            //{ text: rankingText, width: "", align: "center"},
+            { text: "{newName}", width: "", effect: userTextEffect },
+            { html: "<img src='./images/glow/{JobOrName}.png' onError=\"this.onerror=null;this.src='./images/glow/error.png';\" />", width: "5%", align: "center" },
+            { text: "{encdps}", width: "", align: "center" },
+            //{ text: "{damage%}", width: "", align: "center" },
+	    //{ text: "{enchps}", width: "", align: "center" },
+            { text: "{healed%}", width: "", align: "center" },
+            { text: "{crithit%}", width: "", align: "center" },
+            { text: "{DirectHitPct}", width: "", align: "center" },
+	    //{ text: "{misses}", width: "", align: "center", effect: redTextEffect },
+	    { text: "{deaths}", width: "", align: "center", effect: redTextEffect },
+	    { text: "{OverHealPct}", width: "", align: "center" },
+	    //{ text: "{maxhit}", width: "", align: "left"},
+        ];
+
+	var partyMaxHitBuffer = "";
+        var myMaxHitBuffer = "";
+	
+	function getRole (job) {
+		for (var i = 0; i < jobHealers.length; i++) {
+			if (job == jobHealers[i]) {
+				return "healer";
+			}
+		}
+		for (var i = 0; i < jobTanks.length; i++) {
+			if (job == jobTanks[i]) {
+				return "tank";
+			}
+		}
+		for (var i = 0; i < jobOthers.length; i++) {
+			if (job == jobOthers[i]) {
+				return "other";
+			}
+		}
+		return "dps";
+	}
+
+	function userTextEffect(cell, combatant) {
+		if (cell.innerText.indexOf("_userFlag") == 0) {
+			/*if (colorUserFlag == 1) {
+				cell.style.color = "#ffcdd2";
+				cell.style.textShadow = "-1px 0 3px #fc5161, 0 1px 3px #fc5161, 1px 0 3px #fc5161, 0 -1px 3px #fc5161";
+			}*/
+			cell.innerText = characterName;
+		}
+		job = combatant.JobOrName.toLowerCase();
+		role = getRole(job);
+		if (role == "healer") {
+			cell.style.textShadow = "-1px 0 3px #6bf056, 0 1px 3px #6bf056, 1px 0 3px #6bf056, 0 -1px 3px #6bf056";
+		}
+		else if (role == "tank") {
+			cell.style.textShadow = "-1px 0 3px #2970f3, 0 1px 3px #2970f3, 1px 0 3px #2970f3, 0 -1px 3px #2970f3";
+		}
+		else if (role == "dps") {
+			cell.style.textShadow = "-1px 0 3px #fc5161, 0 1px 3px #fc5161, 1px 0 3px #fc5161, 0 -1px 3px #fc5161";
+		}
+		else {
+			cell.style.textShadow = "-1px 0 3px #ded7be, 0 1px 3px #ded7be, 1px 0 3px #ded7be, 0 -1px 3px #ded7be";
+		}
+	}
+
+	function redTextEffect(cell) {
+		var num = parseInt(cell.innerText)
+		if (num > 0) {
+			cell.style.color = "#ffcdd2";
+			cell.style.textShadow = "-1px 0 3px #fc5161, 0 1px 3px #fc5161, 1px 0 3px #fc5161, 0 -1px 3px #fc5161";
+		}
+	}
+
+        // 順位を表示する（text に関数を指定する例）
+        // 引数:
+        //  combatant : キャラクターのデータ。combatant["..."]でデータを取得できる。
+        //  index : キャラクターの並び順。一番上は 0 で、その後は 1 ずつ増える。
+        // 戻り値:
+        //  表示するテキスト。
+        //  ACT のタグは展開されないので、展開したい場合は parseActFormat 関数を使用してください。
+        function rankingText(combatant, index) {
+            // 1 から始まる番号を返す
+            return (index + 1).toString();
+        }
+
+        // 死亡奴を赤くする（effect の例）
+        // 引数:
+        //  cell : セルの DOM 要素
+        //  combatant : キャラクターのデータ。combatant["..."]でデータを取得できる。
+        //  index: キャラクターの並び順。一番上は 0 で、その後は 1 ずつ増える。
+        // 戻り値: なし
+        function deadYatsuEffect(cell, combatant, index) {
+            // デス数を整数値に変換
+            var deaths = parseInt(combatant["deaths"]);
+            // デス数が 0 よりも大きいなら
+            if (deaths > 0) {
+                // 赤くする
+                cell.style.color = "#FFA0A0";
+                cell.style.textShadow = "-1px 0 3px #802020, 0 1px 3px #802020, 1px 0 3px #802020, 0 -1px 3px #802020";
+            }
+        }
+
+        //
+        // 以下表示用スクリプト
+        //
+
+        // onOverlayDataUpdate イベントを購読
+        document.addEventListener("onOverlayDataUpdate", function (e) {
+            update(e.detail);
+        });
+
+        // 表示要素の更新
+        function update(data) {
+            updateEncounter(data);
+            if (document.getElementById("combatantTableHeader") == null) {
+                updateCombatantListHeader();
+            }
+            updateCombatantList(data);
+        }
+
+        // エンカウント情報を更新する
+        function updateEncounter(data) {
+            // 要素取得
+            var encounterElem = document.getElementById('encounter');
+
+            // テキスト取得
+            var elementText;
+            if (typeof encounterDefine === 'function') {
+                elementText = encounterDefine(data.Encounter);
+            } else if (typeof encounterDefine === 'string') {
+                elementText = parseActFormatMaxHit(encounterDefine, data);
+            } else {
+                console.log("updateEncounter: Could not update the encounter element due to invalid type.");
+                return;
+            }
+
+            // テキスト設定
+            if (!useHTMLEncounterDefine) {
+                encounterElem.innerText = parseActFormatMaxHit(encounterDefine, data);
+            } else {
+                encounterElem.innerHTML = parseActFormatMaxHit(encounterDefine, data);
+            }
+        }
+
+        // ヘッダを更新する
+        function updateCombatantListHeader() {
+            var table = document.getElementById('combatantTable');
+            var tableHeader = document.createElement("thead");
+            tableHeader.id = "combatantTableHeader";
+            var headerRow = tableHeader.insertRow();
+
+            for (var i = 0; i < headerDefine.length; i++) {
+                var cell = document.createElement("th");
+                // テキスト設定
+                if (typeof headerDefine[i].text !== 'undefined') {
+                    cell.innerText = headerDefine[i].text;
+                } else if (typeof headerDefine[i].html !== 'undefined') {
+                    cell.innerHTML = headerDefine[i].html;
+                }
+                // 幅設定
+                cell.style.width = headerDefine[i].width;
+                cell.style.maxWidth = headerDefine[i].width;
+                // 横結合数設定
+                if (typeof headerDefine[i].span !== 'undefined') {
+                    cell.colSpan = headerDefine[i].span;
+                }
+                // 行揃え設定
+                if (typeof headerDefine[i].align !== 'undefined') {
+                    cell.style["textAlign"] = headerDefine[i].align;
+                }
+                headerRow.appendChild(cell);
+            }
+
+            table.tHead = tableHeader;
+        }
+
+        // プレイヤーリストを更新する
+        function updateCombatantList(data) {
+            // 要素取得＆作成
+            var table = document.getElementById('combatantTable');
+            var oldTableBody = table.tBodies.namedItem('combatantTableBody');
+            var newTableBody = document.createElement("tbody");
+            newTableBody.id = "combatantTableBody";
+
+            // tbody の内容を作成
+            var combatantIndex = 0;
+            for (var combatantName in data.Combatant) {
+                var combatant = data.Combatant[combatantName];
+                combatant.JobOrName = combatant.Job || combatantName;
+
+                var egiSearch = combatant.JobOrName.indexOf("-Egi (");
+		var turretSearch = combatant.JobOrName.indexOf(" Autoturret (");
+		var carbuncleSearch = combatant.JobOrName.indexOf(" Carbuncle (");
+                if (egiSearch != -1) {
+                    combatant.JobOrName = combatant.JobOrName.substring(0, egiSearch);
+                }
+		else if (turretSearch != -1) {
+                    combatant.JobOrName = combatant.JobOrName.substring(0, turretSearch);
+                }
+		else if (carbuncleSearch != -1) {
+                    combatant.JobOrName = "carbuncle";
+                }
+                else if (combatant.JobOrName.indexOf("Eos (") == 0) {
+                    combatant.JobOrName = "Eos";
+                }
+                else if (combatant.JobOrName.indexOf("Selene (") == 0) {
+                    combatant.JobOrName = "Selene";
+                }
+                else if (combatant.JobOrName.indexOf(" (") != -1) {
+                    combatant.JobOrName = "choco";
+                }
+		combatant.newName = combatantName;
+
+		if (combatant.newName.indexOf("YOU") == 0) {
+			combatant.newName = "_userFlag";
+                }
+		
+
+                var tableRow = newTableBody.insertRow(newTableBody.rows.length);
+                for (var i = 0; i < bodyDefine.length; i++) {
+                    var cell = tableRow.insertCell(i);
+                    // テキスト設定
+                    if (typeof bodyDefine[i].text !== 'undefined') {
+                        var cellText;
+                        if (typeof bodyDefine[i].text === 'function') {
+                            cellText = bodyDefine[i].text(combatant, combatantIndex);
+                        } else {
+                            cellText = parseActFormat(bodyDefine[i].text, combatant);
+                        }
+                        cell.innerText = cellText;
+                    } else if (typeof bodyDefine[i].html !== 'undefined') {
+                        var cellHTML;
+                        if (typeof bodyDefine[i].html === 'function') {
+                            cellHTML = bodyDefine[i].html(combatant, combatantIndex);
+                        } else {
+                            cellHTML = parseActFormat(bodyDefine[i].html, combatant);
+                        }
+                        cell.innerHTML = cellHTML;
+                    }
+                    // 幅設定
+                    cell.style.width = bodyDefine[i].width;
+                    cell.style.maxWidth = bodyDefine[i].width;
+                    // 行構え設定
+                    if (typeof (bodyDefine[i].align) !== 'undefined') {
+                        cell.style.textAlign = bodyDefine[i].align;
+                    }
+                    // エフェクト実行
+                    if (typeof bodyDefine[i].effect === 'function') {
+                        bodyDefine[i].effect(cell, combatant, combatantIndex);
+                    }
+                }
+                combatantIndex++;
+            }
+
+            // tbody が既に存在していたら置換、そうでないならテーブルに追加
+            if (oldTableBody != void (0)) {
+                table.replaceChild(newTableBody, oldTableBody);
+            }
+            else {
+                table.appendChild(newTableBody);
+            }
+        }
+
+        // Miniparse フォーマット文字列を解析し、表示文字列を取得する
+        function parseActFormat(str, dictionary) {
+            var result = "";
+
+            var currentIndex = 0;
+            do {
+                var openBraceIndex = str.indexOf('{', currentIndex);
+                if (openBraceIndex < 0) {
+                    result += str.slice(currentIndex);
+                    break;
+                }
+                else {
+                    result += str.slice(currentIndex, openBraceIndex);
+                    var closeBraceIndex = str.indexOf('}', openBraceIndex);
+                    if (closeBraceIndex < 0) {
+                        // parse error!
+                        console.log("parseActFormat: Parse error: missing close-brace for " + openBraceIndex.toString() + ".");
+                        return "ERROR";
+                    }
+                    else {
+                        var tag = str.slice(openBraceIndex + 1, closeBraceIndex);
+                        if (typeof dictionary[tag] !== 'undefined') {
+			    result += dictionary[tag];
+                        } 
+			else {
+                            console.log("parseActFormat: Unknown tag: " + tag);
+                            result += "ERROR";
+                        }
+                        currentIndex = closeBraceIndex + 1;
+                    }
+                }
+            } while (currentIndex < str.length);
+
+            return result;
+        }
+
+        // Momoko's custom maxhit formatting
+	function parseActFormatMaxHit(str, data) {
+            var result = "";
+
+            var currentIndex = 0;
+
+	    var userMaxHitFlag;
+            var userMaxHitValue = 0;
+            var userMaxHitString = "";
+	    if (str.indexOf("{myMaxHitCustom}") > 0) {
+		userMaxHitFlag = 1;
+		var userMaxHit = "";
+	    	var combatant = data.Combatant["YOU"];
+	    	if (typeof combatant !== 'undefined') {
+              	  userMaxHitString = combatant["maxhit"];
+		  var hitValueString = userMaxHitString.slice(userMaxHitString.lastIndexOf("-")+1);
+		  var hitValue = parseInt(hitValueString.replace(/,/g, ""));
+	  	  if (!isNaN(hitValue)) {
+			userMaxHitValue = hitValue;
+		  }
+		}
+	    }
+            else {
+		userMaxHitFlag = 0;
+            }
+
+	    var partyMaxHitFlag;
+            var partyMaxHitValue = 0;
+            var partyMaxHitString = "";
+	    if (str.indexOf("{maxHitCustom}") > 0) {
+		partyMaxHitFlag = 1;
+			    for (var combatantName in data.Combatant) {
+                                if (noLBInPartyMaxHit == 1 && combatantName == "Limit Break") {
+				   continue;
+				}
+                                if (noMyMaxHitInPartyMaxHit == 1 && combatantName == "YOU") {
+				   continue;
+				}
+				var combatant = data.Combatant[combatantName];
+				
+			  	if (typeof combatant === 'undefined') {
+				    continue;
+				}
+				var maxHitForCombatant = combatant["maxhit"];
+				if (maxHitForCombatant !== 'undefined') {
+				   var hitValueString = maxHitForCombatant.slice(maxHitForCombatant.lastIndexOf("-")+1);
+				   var hitValue = parseInt(hitValueString.replace(/,/g, ""));
+				   if (!isNaN(hitValue)) {
+				      if (hitValue > partyMaxHitValue) {
+					  partyMaxHitValue = hitValue;
+					  if (combatantName == "YOU") {
+					      partyMaxHitString = characterName+"-"+maxHitForCombatant;
+					  }
+					  else {
+					      partyMaxHitString = combatantName+"-"+maxHitForCombatant;
+					  }
+				      }
+				   }
+				}
+			    }
+	    }
+            else {
+		partyMaxHitFlag = 0;
+            }
+
+	    if (colorHigherMaxHit == 1 && partyMaxHitFlag == 1 && userMaxHitFlag == 1) {
+		if (userMaxHitValue >= partyMaxHitValue) {
+			userMaxHitString = "<font style='color:#ffcdd2;text-shadow:-1px 0 3px #fc5161, 0 1px 3px #fc5161, 1px 0 3px #fc5161, 0 -1px 3px #fc5161;font-weight:100;'>" + userMaxHitString + "</font>";
+		}
+		else {
+			partyMaxHitString = "<font style='color:#ffcdd2;text-shadow:-1px 0 3px #fc5161, 0 1px 3px #fc5161, 1px 0 3px #fc5161, 0 -1px 3px #fc5161;font-weight:100;'>" + partyMaxHitString + "</font>";
+		}
+	    }
+
+            do {
+                var openBraceIndex = str.indexOf('{', currentIndex);
+                if (openBraceIndex < 0) {
+                    result += str.slice(currentIndex);
+                    break;
+                }
+                else {
+                    result += str.slice(currentIndex, openBraceIndex);
+                    var closeBraceIndex = str.indexOf('}', openBraceIndex);
+                    if (closeBraceIndex < 0) {
+                        // parse error!
+                        console.log("parseActFormat: Parse error: missing close-brace for " + openBraceIndex.toString() + ".");
+                        return "ERROR";
+                    }
+                    else {
+                        var tag = str.slice(openBraceIndex + 1, closeBraceIndex);
+			if (tag == "maxHitCustom") {
+			    result += partyMaxHitString;
+			}
+                        else if (tag == "myMaxHitCustom") {
+			    result += userMaxHitString;
+			}
+                        else if (typeof data.Encounter[tag] !== 'undefined') {
+			    result += data.Encounter[tag];
+                        } 
+			else {
+                            console.log("parseActFormat: Unknown tag: " + tag);
+                            result += "ERROR";
+                        }
+                        currentIndex = closeBraceIndex + 1;
+                    }
+                }
+            } while (currentIndex < str.length);
+
+            return result;
+        }
+    </script>
+</head>
+    <body>
+        <div id="wrapper">
+            <div id="encounter">
+                No data to show.
+                <!-- ここにエンカウント情報が入る -->
+            </div>
+
+            <table id="combatantTable">
+                <!-- ここにヘッダが入る -->
+                <!-- ここに各キャラの情報が入る -->
+            </table>
+        </div>
+    </body>
+</html>

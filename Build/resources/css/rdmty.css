@@ -227,9 +227,6 @@ li:last-child {
 .show-job-colors .mrd .bar, .show-job-colors .war .bar {
     background-color: #a91a16;
 }
-.show-job-colors .mrd .bar, .show-job-colors .war .bar {
-    background-color: #a91a16;
-}
 .show-job-colors .drk .bar {
     background-color: #4a2829;
 }
@@ -238,6 +235,21 @@ li:last-child {
 }
 .show-job-colors .mch .bar {
     background-color: #6bcec2;
+}
+.show-job-colors .sam .bar {
+    background-color: rgb(179,89,0);
+}
+.show-job-colors .rdm .bar {
+    background-color: rgb(102,0,0);
+}
+.show-job-colors .blu .bar {
+    background-color: rgba(98,151,241);
+}
+.show-job-colors .dnc .bar {
+    background-color: rgb(255,192,203);
+}
+.show-job-colors .gnb .bar {
+    background-color: rgb(245,238,80);
 }
 
 
