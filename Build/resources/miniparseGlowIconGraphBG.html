@@ -104,7 +104,9 @@ td:last-child {
 #combatantTableBody .Cnj td,
 #combatantTableBody .Whm td,
 #combatantTableBody .Sch td,
-#combatantTableBody .Ast td {
+#combatantTableBody .Ast td,
+#combatantTableBody .Sge td {
+
 	color: #ffffff;
 	background-color: rgba(107,240,86,0.2);
 	background-blend-mode: soft-light;
@@ -126,7 +128,8 @@ td:last-child {
 #combatantTableBody .Blm td,
 #combatantTableBody .Mch td,
 #combatantTableBody .Sam td,
-#combatantTableBody .Rdm td {
+#combatantTableBody .Rdm td,
+#combatantTableBody .Rpr td {
 	color: #ffffff;
 	background-color: rgba(200,3,8,0.2);
 	background-blend-mode: soft-light;
@@ -237,8 +240,8 @@ td:last-child {
 
 		function dpsBarEffect(cell, combatant, index) {
     		var tank = ["Gld", "Gla", "Pld", "Mrd", "War", "Drk", "Gnb"]
-   		var dps = ["Pgl", "Mnk", "Lnc", "Drg", "Arc", "Brd", "Rog", "Nin", "Acn", "Smn", "Thm", "Blm", "Mch", "Sam", "Rdm", "Blu", "Dnc"]
-    		var healer = ["Cnj", "Whm", "Sch", "Ast"]
+   		var dps = ["Pgl", "Mnk", "Lnc", "Drg", "Arc", "Brd", "Rog", "Nin", "Acn", "Smn", "Thm", "Blm", "Mch", "Sam", "Rdm", "Blu", "Dnc", "Rpr"]
+    		var healer = ["Cnj", "Whm", "Sch", "Ast", "Sge"]
 
     		if (index == 0 || typeof dpsBarEffect.topdeeps == 'undefined') {
         		dpsBarEffect.topdeeps = combatant["encdps"];

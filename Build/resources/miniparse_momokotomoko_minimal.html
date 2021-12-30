@@ -309,7 +309,7 @@
                 }
 		combatant.newName = combatantName;
 
-		if (combatant.newName.indexOf("YOU") == 0) {
+		if (combatant.newName === "YOU" || combatant.newName === characterName) {
 			combatant.newName = "_userFlag";
                 }
 		

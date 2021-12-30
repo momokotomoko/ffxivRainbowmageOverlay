@@ -443,6 +443,13 @@ background: -webkit-linear-gradient(top,  rgb(245,238,80)  0%,rgb(245,238,80) 80
 .show-job-colors .dnc .bar {
 background: -webkit-linear-gradient(top,  rgb(255,192,203) 0%,rgb(255,192,203) 80%,#720000 80%,#C00000 100%);
 }
+.show-job-colors .sge .bar {
+background: -webkit-linear-gradient(top,  rgb(169,241,255) 0%,rgb(169,241,255) 80%,#007200 80%,#00C000 100%);
+}
+.show-job-colors .rpr .bar {
+background: -webkit-linear-gradient(top,  rgb(197,189,82) 0%,rgb(197,189,82) 80%,#720000 80%,#C00000 100%);
+}
+
 
 
 .job-icon {

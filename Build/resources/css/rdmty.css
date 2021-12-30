@@ -251,6 +251,12 @@ li:last-child {
 .show-job-colors .gnb .bar {
     background-color: rgb(245,238,80);
 }
+.show-job-colors .rpr .bar {
+    background-color: rgb(197,189,82);
+}
+.show-job-colors .sge .bar {
+    background-color: rgb(169,241,255);
+}
 
 
 .job-icon {

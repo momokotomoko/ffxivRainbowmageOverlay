@@ -161,6 +161,12 @@ html {
 .ast div.bar {
     background: linear-gradient(to top, rgba(178, 161, 53, 0.75), rgba(255, 231, 74, 0.75));
 }
+.rpr div.bar {
+    background: linear-gradient(to top, rgba(197, 189, 82, 0.75), rgba(210, 204, 123, 0.75));
+}
+.sge div.bar {
+    background: linear-gradient(to top, rgba(169, 241, 255, 0.75), rgba(183, 242, 255, 0.75));
+}
 .jobless div.bar {
     background: linear-gradient(to top, rgba(81, 81, 81, 0.75), rgba(160, 160, 160, 0.75));
 }

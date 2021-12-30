@@ -125,7 +125,7 @@
         var useHTMLEncounterDefine = true;
 
 	// list of jobs, dps is anything that is not listed here
-	var jobHealers = ["eos", "selene", "sch", "ast", "cnj", "whm"];
+	var jobHealers = ["eos", "selene", "sch", "ast", "cnj", "whm", "sge"];
 	var jobTanks = ["titan", "pld", "gla", "gld", "war", "mrd", "drk", "gnb"];
 	var jobOthers = ["alc", "arm", "bsm", "btn", "crp", "cul", "fsh", "gsm", "ltw", "min", "wvr", "choco", "chocobo", "blu"];
 
@@ -359,7 +359,7 @@
                 }
 		combatant.newName = combatantName;
 
-		if (combatant.newName.indexOf("YOU") == 0) {
+		if (combatant.newName === "YOU" || combatant.newName === characterName) {
 			combatant.newName = "_userFlag";
                 }
 		
@@ -457,7 +457,7 @@
 	    if (str.indexOf("{myMaxHitCustom}") > 0) {
 		userMaxHitFlag = 1;
 		var userMaxHit = "";
-	    	var combatant = data.Combatant["YOU"];
+	    	var combatant = data.Combatant[characterName];
 	    	if (typeof combatant !== 'undefined') {
               	  userMaxHitString = combatant["maxhit"];
 		  var hitValueString = userMaxHitString.slice(userMaxHitString.lastIndexOf("-")+1);
@@ -480,7 +480,7 @@
                                 if (noLBInPartyMaxHit == 1 && combatantName == "Limit Break") {
 				   continue;
 				}
-                                if (noMyMaxHitInPartyMaxHit == 1 && combatantName == "YOU") {
+                                if (noMyMaxHitInPartyMaxHit == 1 && combatantName === characterName) {
 				   continue;
 				}
 				var combatant = data.Combatant[combatantName];
@@ -495,7 +495,7 @@
 				   if (!isNaN(hitValue)) {
 				      if (hitValue > partyMaxHitValue) {
 					  partyMaxHitValue = hitValue;
-					  if (combatantName == "YOU") {
+					  if (combatantName === characterName) {
 					      partyMaxHitString = characterName+"-"+maxHitForCombatant;
 					  }
 					  else {

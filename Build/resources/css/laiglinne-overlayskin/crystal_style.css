@@ -365,7 +365,7 @@ li:last-child
     color:#F04040;
 }
 
-.character-job.sch, .character-job.ast, .character-job.cnj, .character-job.whm
+.character-job.sch, .character-job.ast, .character-job.cnj, .character-job.whm, .character-job.sge
 
 {
     color:#00E000;
@@ -678,6 +678,32 @@ li:last-child
 .show-job-colors .dnc .bar::before 
 {
     border-color: transparent transparent transparent rgb(255,192,203);
+}
+.show-job-colors .sge .bar 
+{
+    background: linear-gradient(to right, rgb(169,241,255) 0%, transparent 5%, transparent 80%, rgb(169,241,255) 100%);
+    box-shadow: inset 0px 0px 7px rgba(169,241,255, 1);
+}
+.show-job-colors .sge .bar::after 
+{
+    border-color: transparent rgb(169,241,255) transparent transparent;
+}
+.show-job-colors .sge .bar::before 
+{
+    border-color: transparent transparent transparent rgb(169,241,255);
+}
+.show-job-colors .rpr .bar 
+{
+    background: linear-gradient(to right, rgb(197,189,82) 0%, transparent 5%, transparent 80%, rgb(197,189,82) 100%);
+    box-shadow: inset 0px 0px 7px rgba(197,189,82, 1);
+}
+.show-job-colors .rpr .bar::after 
+{
+    border-color: transparent rgb(197,189,82) transparent transparent;
+}
+.show-job-colors .rpr .bar::before 
+{
+    border-color: transparent transparent transparent rgb(197,189,82);
 }
 
 

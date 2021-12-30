@@ -152,6 +152,11 @@
 .item[data-job=WAR]>.icon{background-image:url(../../images/FancyDetail-overlayskin/icon/WAR.png); background-color:rgba(0,0,204,0.5);}
 .item[data-job=WHM]>.icon{background-image:url(../../images/FancyDetail-overlayskin/icon/WHM.png); background-color:rgba(0,204,0,0.5);}
 .item[data-job=WVR]>.icon{background-image:url(../../images/FancyDetail-overlayskin/icon/WVR.png);}
+.item[data-job=BLU]>.icon{background-image:url(../../images/FancyDetail-overlayskin/icon/BLU.png); background-color:rgba(98,151,241,0.5);}
+.item[data-job=GNB]>.icon{background-image:url(../../images/FancyDetail-overlayskin/icon/GNB.png); background-color:rgba(245,238,80,0.5);}
+.item[data-job=DNC]>.icon{background-image:url(../../images/FancyDetail-overlayskin/icon/DNC.png); background-color:rgba(255,192,203,0.5);}
+.item[data-job=RPR]>.icon{background-image:url(../../images/FancyDetail-overlayskin/icon/RPR.png); background-color:rgba(197,189,82,0.5);}
+.item[data-job=SGE]>.icon{background-image:url(../../images/FancyDetail-overlayskin/icon/SGE.png); background-color:rgba(169,241,255,0.5);}
 
 .item[data-job=AST]>.datas>.bar{background:rgb(198,130,90); color:#FF9;}
 .item[data-job=BLM]>.datas>.bar{background:rgb(100, 70, 150); color:#A9F;}
@@ -170,6 +175,17 @@
 .item[data-job=WAR]>.datas>.bar{background:rgb(200,40,30); color:#FA8;}
 .item[data-job=WHM]>.datas>.bar{background:rgb(220, 215, 180);}
 
+.item[data-job=BLU]>.datas>.bar{background:rgb(98,151,241);}
+.item[data-job=GNB]>.datas>.bar{background:rgb(245,238,80);}
+.item[data-job=DNC]>.datas>.bar{background:rgb(255,192,203);}
+.item[data-job=RPR]>.datas>.bar{background:rgb(197,189,82);}
+.item[data-job=SGE]>.datas>.bar{background:rgb(169,241,255);}
+
+.item[data-job=BLU]>.datas>.bar::before{border-color:transparent transparent transparent rgb(98,151,241);}
+.item[data-job=GNB]>.datas>.bar::before{border-color:transparent transparent transparent rgb(245,238,80);}
+.item[data-job=DNC]>.datas>.bar::before{border-color:transparent transparent transparent rgb(255,192,203);}
+.item[data-job=RPR]>.datas>.bar::before{border-color:transparent transparent transparent rgb(197,189,82);}
+.item[data-job=SGE]>.datas>.bar::before{border-color:transparent transparent transparent rgb(169,241,255);}
 .item[data-job=AST]>.datas>.bar::before{border-color:transparent transparent transparent rgb(198,130,90);}
 .item[data-job=BLM]>.datas>.bar::before{border-color:transparent transparent transparent rgb(100, 70, 150);}
 .item[data-job=BRD]>.datas>.bar::before{border-color:transparent transparent transparent rgb(180, 200, 80);}
