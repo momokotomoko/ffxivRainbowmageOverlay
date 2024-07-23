@@ -24,4 +24,10 @@ Youtube Tutorial:
 6. Extract the 'Build' folder from the zip file into your ACT installation directory (ie: `C:\Program Files (x86)\Advanced Combat Tracker`)
 7. In ACT, go into the Plugins tab -> Plugin Listing tab -> Browse, and select the `OverlayPlugin.dll` file in the Build folder. Then click Add/Enable Plugin
 
+## Fonts
+
+This overlay looks best with the Meiryo font. I have included the font file in this repo as [`meiryo.ttc`](meiryo.ttc).
+
+To install the font, simply download it, place it in the `C:\Windows\Fonts` folder, and double click it to install the font.
+
 [![buymeacoffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/momokoffxiv)
