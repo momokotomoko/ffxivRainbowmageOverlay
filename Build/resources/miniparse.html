@@ -119,7 +119,7 @@
 	var colorHigherMaxHit = 1;
 
         // エンカウント情報の定義
-        var encounterDefine = "Time: {duration} / Party DPS: {ENCDPS} <br>Party Max Hit: {maxHitCustom}<br>My Max Hit: {myMaxHitCustom}";
+        var encounterDefine = "Time: {duration} / Party DPS: {ENCDPS} / Total Deaths: {totalDeaths}<br>Party Max Hit: {maxHitCustom}<br>My Max Hit: {myMaxHitCustom}";
 
         // 上記のエンカウント情報を HTML として扱うなら true
         var useHTMLEncounterDefine = true;
@@ -294,7 +294,13 @@
 
             // tbody の内容を作成
             var combatantIndex = 0;
+            var combatantCount = 0;
             for (var combatantName in data.Combatant) {
+                if (combatantCount >= 8) {
+                    break;
+                }
+                combatantCount++;
+
                 var combatant = data.Combatant[combatantName];
                 combatant.JobOrName = combatant.Job || combatantName;
 
@@ -324,7 +330,10 @@
 		if (combatant.newName === "YOU" || combatant.newName === characterName) {
 			combatant.newName = "_userFlag";
                 }
-		
+
+		if (combatant.newName === "Limit Break") { // don't show death count for limit breaks
+			combatant.deaths = "";
+                }
 
                 var tableRow = newTableBody.insertRow(newTableBody.rows.length);
                 for (var i = 0; i < bodyDefine.length; i++) {
@@ -413,6 +422,16 @@
 
             var currentIndex = 0;
 
+            // count total deaths
+            var totalDeaths = 0;
+            for (var combatantName in data.Combatant) {
+                totalDeaths += parseInt(data.Combatant[combatantName].deaths);
+            }
+            var totalDeathsString = totalDeaths.toString();
+            if (totalDeaths > 0) {
+                totalDeathsString = "<font style='color:#ffcdd2;text-shadow:-1px 0 3px #fc5161, 0 1px 3px #fc5161, 1px 0 3px #fc5161, 0 -1px 3px #fc5161;font-weight:100;'>" + totalDeathsString + "</font>";
+            }
+
 	    var userMaxHitFlag;
             var userMaxHitValue = 0;
             var userMaxHitString = "";
@@ -497,12 +516,15 @@
                     }
                     else {
                         var tag = str.slice(openBraceIndex + 1, closeBraceIndex);
-			if (tag == "maxHitCustom") {
+			if (tag === "maxHitCustom") {
 			    result += partyMaxHitString;
 			}
-                        else if (tag == "myMaxHitCustom") {
+                        else if (tag === "myMaxHitCustom") {
 			    result += userMaxHitString;
 			}
+                        else if (tag === "totalDeaths") {
+                            result += totalDeathsString;
+                        }
                         else if (typeof data.Encounter[tag] !== 'undefined') {
 			    result += data.Encounter[tag];
                         } 

@@ -257,6 +257,12 @@ li:last-child {
 .show-job-colors .sge .bar {
     background-color: rgb(169,241,255);
 }
+.show-job-colors .vpr .bar {
+    background-color: rgb(170,77,33);
+}
+.show-job-colors .pct .bar {
+    background-color: rgb(245,215,55);
+}
 
 
 .job-icon {

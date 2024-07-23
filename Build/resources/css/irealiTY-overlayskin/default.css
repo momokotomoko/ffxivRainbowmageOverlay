@@ -449,6 +449,12 @@ background: -webkit-linear-gradient(top,  rgb(169,241,255) 0%,rgb(169,241,255) 8
 .show-job-colors .rpr .bar {
 background: -webkit-linear-gradient(top,  rgb(197,189,82) 0%,rgb(197,189,82) 80%,#720000 80%,#C00000 100%);
 }
+.show-job-colors .vpr .bar {
+background: -webkit-linear-gradient(top,  rgb(170,77,33) 0%,rgb(170,77,33) 80%,#720000 80%,#C00000 100%);
+}
+.show-job-colors .pct .bar {
+background: -webkit-linear-gradient(top,  rgb(245,215,55) 0%,rgb(245,215,55) 80%,#720000 80%,#C00000 100%);
+}
 
 
 

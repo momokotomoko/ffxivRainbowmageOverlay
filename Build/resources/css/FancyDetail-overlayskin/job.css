@@ -157,6 +157,8 @@
 .item[data-job=DNC]>.icon{background-image:url(../../images/FancyDetail-overlayskin/icon/DNC.png); background-color:rgba(255,192,203,0.5);}
 .item[data-job=RPR]>.icon{background-image:url(../../images/FancyDetail-overlayskin/icon/RPR.png); background-color:rgba(197,189,82,0.5);}
 .item[data-job=SGE]>.icon{background-image:url(../../images/FancyDetail-overlayskin/icon/SGE.png); background-color:rgba(169,241,255,0.5);}
+.item[data-job=RPR]>.icon{background-image:url(../../images/FancyDetail-overlayskin/icon/VPR.png); background-color:rgba(170,77,33,0.5);}
+.item[data-job=SGE]>.icon{background-image:url(../../images/FancyDetail-overlayskin/icon/PCT.png); background-color:rgba(245,215,55,0.5);}
 
 .item[data-job=AST]>.datas>.bar{background:rgb(198,130,90); color:#FF9;}
 .item[data-job=BLM]>.datas>.bar{background:rgb(100, 70, 150); color:#A9F;}
@@ -180,6 +182,8 @@
 .item[data-job=DNC]>.datas>.bar{background:rgb(255,192,203);}
 .item[data-job=RPR]>.datas>.bar{background:rgb(197,189,82);}
 .item[data-job=SGE]>.datas>.bar{background:rgb(169,241,255);}
+.item[data-job=VPR]>.datas>.bar{background:rgb(170,77,33);}
+.item[data-job=PCT]>.datas>.bar{background:rgb(245,215,55);}
 
 .item[data-job=BLU]>.datas>.bar::before{border-color:transparent transparent transparent rgb(98,151,241);}
 .item[data-job=GNB]>.datas>.bar::before{border-color:transparent transparent transparent rgb(245,238,80);}
@@ -202,3 +206,5 @@
 .item[data-job=SMN]>.datas>.bar::before{border-color:transparent transparent transparent rgb(40, 150, 0);}
 .item[data-job=WAR]>.datas>.bar::before{border-color:transparent transparent transparent rgb(200,40,30);}
 .item[data-job=WHM]>.datas>.bar::before{border-color:transparent transparent transparent rgb(220, 215, 180);}
+.item[data-job=VPR]>.datas>.bar::before{border-color:transparent transparent transparent rgb(170,77,33);}
+.item[data-job=PCT]>.datas>.bar::before{border-color:transparent transparent transparent rgb(245,215,55);}

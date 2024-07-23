@@ -124,7 +124,9 @@ td:last-child {
 #combatantTableBody .Mch td,
 #combatantTableBody .Sam td,
 #combatantTableBody .Rdm td,
-#combatantTableBody .Rpr td {
+#combatantTableBody .Rpr td,
+#combatantTableBody .Vpr td,
+#combatantTableBody .Pct td {
 	color: #ffffff;
 	background-color: rgba(200,3,8,0.2);
 	background-blend-mode: soft-light;
@@ -231,7 +233,7 @@ td:last-child {
 
 function dpsBarEffect(cell, combatant, index) {
     var tank = ["Gla", "Pld", "Mrd", "War", "Drk", "Gnb"]
-    var dps = ["Pgl", "Mnk", "Lnc", "Drg", "Arc", "Brd", "Rog", "Nin", "Acn", "Smn", "Thm", "Blm", "Mch", "Sam", "Rdm", "Blu", "Dnc", "Rpr"]
+    var dps = ["Pgl", "Mnk", "Lnc", "Drg", "Arc", "Brd", "Rog", "Nin", "Acn", "Smn", "Thm", "Blm", "Mch", "Sam", "Rdm", "Blu", "Dnc", "Rpr", "Vpr", "Pct"]
     var healer = ["Cnj", "Whm", "Sch", "Ast", "Sge"]
 
     if (index == 0 || typeof dpsBarEffect.topdeeps == 'undefined') {

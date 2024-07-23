@@ -706,6 +706,35 @@ li:last-child
     border-color: transparent transparent transparent rgb(197,189,82);
 }
 
+.show-job-colors .vpr .bar 
+{
+    background: linear-gradient(to right, rgb(170,77,33) 0%, transparent 5%, transparent 80%, rgb(170,77,33) 100%);
+    box-shadow: inset 0px 0px 7px rgba(170,77,33, 1);
+}
+.show-job-colors .vpr .bar::after 
+{
+    border-color: transparent rgb(170,77,33) transparent transparent;
+}
+.show-job-colors .vpr .bar::before 
+{
+    border-color: transparent transparent transparent rgb(170,77,33);
+}
+
+
+.show-job-colors .pct .bar 
+{
+    background: linear-gradient(to right, rgb(245,215,55) 0%, transparent 5%, transparent 80%, rgb(245,215,55) 100%);
+    box-shadow: inset 0px 0px 7px rgba(245,215,55, 1);
+}
+.show-job-colors .pct .bar::after 
+{
+    border-color: transparent rgb(245,215,55) transparent transparent;
+}
+.show-job-colors .pct .bar::before 
+{
+    border-color: transparent transparent transparent rgb(245,215,55);
+}
+
 
 .show-job-colors .choco .bar 
 {

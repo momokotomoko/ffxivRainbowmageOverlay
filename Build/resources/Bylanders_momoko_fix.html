@@ -368,6 +368,11 @@ width: 0px;
 					row.find('.bar').css('background', 'rgba(146,115,202,1.00)');
 					row.find('.bar').css('-webkit-box-shadow', '0px 0px 6px 1px rgba(146,115,202,0.20)');					
 														}
+					else if(JobOrName(combatant) == 'Pct') //Pictomancer//
+					{
+					row.find('.bar').css('background', 'rgba(245,215,55,1.00)');
+					row.find('.bar').css('-webkit-box-shadow', '0px 0px 6px 1px rgba(245,215,55,0.20)');					
+														}
 					else if(JobOrName(combatant) == 'Whm') //White Mage//
 					{
 					row.find('.bar').css('background', 'rgba(232,229,192,1.00)');
@@ -410,8 +415,12 @@ width: 0px;
 					else if(JobOrName(combatant) == 'Rpr') //Reaper//
 					{
 					row.find('.bar').css('background', 'rgba(197,189,82,1.00)');
-					row.find('.bar').css('-webkit-box-shadow', '0px 0px 6px 1px rgba(197,189,82,0.20)');
-					row.find('.hps').text('HPS' + ' ' + combatant.enchps);				
+					row.find('.bar').css('-webkit-box-shadow', '0px 0px 6px 1px rgba(197,189,82,0.20)');			
+														}
+					else if(JobOrName(combatant) == 'Vpr') //Viper//
+					{
+					row.find('.bar').css('background', 'rgba(170,77,33,1.00)');
+					row.find('.bar').css('-webkit-box-shadow', '0px 0px 6px 1px rgba(170,77,33,0.20)');		
 														}
 					else if(JobOrName(combatant) == 'Mrd') //Marauder//
 					{
